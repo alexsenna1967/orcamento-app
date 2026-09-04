@@ -3,97 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Orçamentos - PWA</title>
-  <link rel="manifest" href="manifest.json">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .card {
-      background-color: #1e1e1e;
-      padding: 25px;
-      border-radius: 10px;
-      max-width: 400px;
-      width: 100%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    h2 { margin-top: 0; color: #4caf50; }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #333;
-      background: #2a2a2a;
-      color: #fff;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #4caf50;
-      border: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover { background-color: #45a049; }
-    .hidden { display: none; }
-    .status-msg { margin-top: 15px; font-size: 0.9em; color: #ff9800; }
-    .btn-whatsapp { background-color: #25d366; text-decoration: none; display: block; text-align: center; padding: 12px; color: white; border-radius: 5px; font-weight: bold; margin-top: 10px; }
-  </style>
-</head>
-<body>
-
-  <div class="card">
-    <!-- Formulário de Autenticação -->
-    <div id="auth-section">
-      <h2 id="form-title">Aceder à Calculadora</h2>
-      <input type="email" id="email" placeholder="Seu e-mail" required>
-      <input type="password" id="password" placeholder="Sua senha" required>
-      
-      <button id="btn-login" onclick="fazerLogin()">Entrar</button>
-      <button id="btn-register" onclick="fazerRegistro()" style="background-color: #2196f3;">Criar Conta Gratis (30 Dias)</button>
-      <p id="auth-error" class="status-msg"></p>
-    </div>
-
-    <!-- Área Principal do App (Calculadora) -->
-    <div id="app-section" class="hidden">
-      <h2>Calculadora Ativa</h2>
-      <p>Bem-vindo! O seu período de teste está ativo.</p>
-      <p id="trial-info" style="color: #4caf50; font-weight: bold;"></p>
-      
-      <!-- Aqui entra a lógica de cálculos do teu orçamento -->
-      <hr>
-      <button onclick="fazerLogout()" style="background-color: #f44336;">Sair</button>
-    </div>
-
-    <!-- Tela de Bloqueio por Expiração -->
-    <div id="expired-section" class="hidden">
-      <h2 style="color: #f44336;">Período de Teste Expirado</h2>
-      <p>Os seus 30 dias de teste gratuito terminaram. Para continuar a utilizar e renovar a sua subscrição, entre em contacto connosco.</p>
-      <a id="whatsapp-link" href="#" target="_blank" class="btn-whatsapp">Renovar via WhatsApp</a>
-      <button onclick="fazerLogout()" style="background-color: #555; margin-top: 15px;">Sair / Alternar Conta</button>
-    </div>
-  </div>
-
-  <!-- Scripts do Firebase (SDK v9 Modular em compatibilidade Web) -->
+  <title>Calculadora de Orçamento</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-<script>
-    // Configuração do Firebase com as tuas chaves reais
+  <!-- 1. TELA DE LOGIN / REGISTRO -->
+  <div id="auth-section" class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Acesse a Calculadora</h2>
+    <div id="auth-error" class="text-red-500 text-sm mb-4 text-center"></div>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">E-mail</label>
+        <input type="email" id="email" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none" placeholder="seu@email.com">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Senha</label>
+        <input type="password" id="password" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none" placeholder="******">
+      </div>
+      
+      <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">Entrar</button>
+      <button onclick="fazerRegistro()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">Criar Conta Grátis (30 Dias)</button>
+    </div>
+  </div>
+
+  <!-- 2. TELA DA CALCULADORA (APLICAÇÃO) -->
+  <div id="app-section" class="hidden bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Orçamento App</h1>
+      <button onclick="fazerLogout()" class="text-sm text-red-500 hover:underline">Sair</button>
+    </div>
+
+    <!-- Aviso do Período de Teste -->
+    <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md mb-6 text-sm text-center font-medium"></div>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Valor por Hora (R$)</label>
+        <input type="number" id="valorHora" oninput="calcularOrçamento()" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: 50">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Horas Estimadas</label>
+        <input type="number" id="horas" oninput="calcularOrçamento()" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: 10">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Desconto (%)</label>
+        <input type="number" id="desconto" oninput="calcularOrçamento()" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: 5">
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-md mt-6">
+        <span class="text-gray-600 font-medium">Total Estimado:</span>
+        <span id="resultado" class="text-2xl font-bold text-gray-800 block mt-1">R$ 0,00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. TELA DE ACESSO EXPIRADO -->
+  <div id="expired-section" class="hidden bg-white p-8 rounded-xl shadow-md w-full max-w-md text-center">
+    <h2 class="text-2xl font-bold text-red-600 mb-4">Período de Teste Expirado</h2>
+    <p class="text-gray-600 mb-6">Seus 30 dias de teste grátis terminaram. Para continuar utilizando a calculadora, entre em contato para renovar sua assinatura.</p>
+    <a id="whatsapp-link" target="_blank" class="inline-block bg-green-500 text-white px-6 py-3 rounded-md font-bold hover:bg-green-600 transition">Renovar Acesso no WhatsApp</a>
+    <br>
+    <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
+  </div>
+
+  <script>
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAMtufmBKrbAUjzvWVZPswOnQpSq_EuB_Y",
       authDomain: "orcamento-app-bd066.firebaseapp.com",
@@ -104,12 +84,10 @@
       measurementId: "G-QH9HG5N1FX"
     };
 
-    // Inicializa os serviços do Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Monitora o estado de Login em tempo real
     auth.onAuthStateChanged(user => {
       if (user) {
         verificarStatusAssinatura(user);
@@ -118,7 +96,6 @@
       }
     });
 
-    // Função de Registo de Novo Utilizador
     function fazerRegistro() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -126,7 +103,6 @@
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          // Grava a data inicial no Firestore (30 dias de trial)
           return db.collection('users').doc(user.uid).set({
             email: user.email,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -135,11 +111,10 @@
           });
         })
         .catch((error) => {
-          document.getElementById('auth-error').innerText = "Erro ao registar: " + error.message;
+          document.getElementById('auth-error').innerText = "Erro ao registrar: " + error.message;
         });
     }
 
-    // Função de Login
     function fazerLogin() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -150,12 +125,10 @@
         });
     }
 
-    // Função de Logout
     function fazerLogout() {
       auth.signOut();
     }
 
-    // Lógica principal de validação dos 30 dias de teste
     function verificarStatusAssinatura(user) {
       db.collection('users').doc(user.uid).get().then((doc) => {
         if (doc.exists) {
@@ -163,7 +136,6 @@
           const startDate = new Date(data.trialStartDate);
           const currentDate = new Date();
           
-          // Calcula a diferença em dias
           const diffTime = Math.abs(currentDate - startDate);
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           const diasRestantes = 30 - diffDays;
@@ -172,9 +144,8 @@
             document.getElementById('trial-info').innerText = `Período de teste: restam ${diasRestantes > 0 ? diasRestantes : 0} dia(s).`;
             mostrarTela('app');
           } else {
-            // Insere o teu número do WhatsApp abaixo (Código País + DDD + Número)
-            const numWhatsApp = "5531999999999"; 
-            const mensagem = encodeURIComponent(`Olá! O meu período de teste expirou (E-mail: ${user.email}). Gostaria de renovar o meu acesso à Calculadora.`);
+            const numWhatsApp = "5531994110075"; 
+            const mensagem = encodeURIComponent(`Olá! Meu período de teste expirou (E-mail: ${user.email}). Gostaria de renovar meu acesso.`);
             document.getElementById('whatsapp-link').href = `https://wa.me/${numWhatsApp}?text=${mensagem}`;
             mostrarTela('expired');
           }
@@ -184,7 +155,19 @@
       });
     }
 
-    // Utilitário para alternar exibições de telas
+    function calcularOrçamento() {
+      const valorHora = parseFloat(document.getElementById('valorHora').value) || 0;
+      const horas = parseFloat(document.getElementById('horas').value) || 0;
+      const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+
+      let total = valorHora * horas;
+      if (desconto > 0) {
+        total = total - (total * (desconto / 100));
+      }
+
+      document.getElementById('resultado').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
     function mostrarTela(tela) {
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('app-section').classList.add('hidden');
@@ -195,3 +178,5 @@
       if (tela === 'expired') document.getElementById('expired-section').classList.remove('hidden');
     }
   </script>
+</body>
+</html>
