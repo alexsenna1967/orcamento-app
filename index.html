@@ -3,130 +3,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Orçamentos e Gestão</title>
+  <title>Gestor de Orçamentos e Recibos</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Biblioteca para Gerar PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-100 min-h-screen p-2 md:p-6">
 
   <!-- 1. TELA DE LOGIN / REGISTRO -->
-  <div id="auth-section" class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Acesse o Sistema</h2>
+  <div id="auth-section" class="max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Acesse o Gestor</h2>
     <div id="auth-error" class="text-red-500 text-sm mb-4 text-center"></div>
-    
     <div class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700">E-mail</label>
-        <input type="email" id="email" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none" placeholder="seu@email.com">
+        <input type="email" id="email" class="w-full mt-1 p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500" placeholder="seu@email.com">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">Senha</label>
-        <input type="password" id="password" class="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none" placeholder="******">
+        <input type="password" id="password" class="w-full mt-1 p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500" placeholder="******">
       </div>
-      
-      <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition font-bold">Entrar</button>
-      <button onclick="fazerRegistro()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition font-bold">Criar Conta Grátis (30 Dias)</button>
+      <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-bold transition">Entrar</button>
+      <button onclick="fazerRegistro()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-bold transition">Criar Conta Grátis (30 Dias)</button>
     </div>
   </div>
 
-  <!-- 2. TELA DA APLICAÇÃO COMPLETA -->
-  <div id="app-section" class="hidden bg-white p-8 rounded-xl shadow-md w-full max-w-2xl">
+  <!-- 2. PAINEL COMPLETO DO APLICATIVO -->
+  <div id="app-section" class="hidden max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md space-y-6">
     
-    <!-- Topo / Cabeçalho -->
-    <div class="flex justify-between items-center mb-4 border-b pb-4">
-      <div>
-        <h1 id="displayEmpresa" class="text-2xl font-bold text-gray-800">Sua Empresa</h1>
-        <p class="text-xs text-gray-500">Sistema de Orçamentos e Cobranças</p>
-      </div>
-      <button onclick="fazerLogout()" class="text-sm text-red-500 hover:underline">Sair</button>
+    <!-- Topo -->
+    <div class="flex justify-between items-center border-b pb-4">
+      <h1 class="text-2xl font-bold text-gray-800">Gestor de Orçamentos e Recibos</h1>
+      <button onclick="fazerLogout()" class="text-sm text-red-500 hover:underline font-semibold">Sair</button>
     </div>
 
     <!-- Aviso do Período de Teste -->
-    <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md mb-6 text-sm text-center font-medium"></div>
+    <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
 
-    <div id="area-pdf" class="space-y-6 p-2">
-      <!-- Bloco 1: Dados da Empresa do Utilizador e do Cliente -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Nome da Sua Empresa</label>
-          <input type="text" id="nomeEmpresa" oninput="atualizarEmpresa()" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: Senna Serviços Web">
+    <div id="area-pdf" class="space-y-6">
+      
+      <!-- Cards Resumo Financeiro -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-emerald-500 text-white p-4 rounded-lg shadow text-center">
+          <p class="text-xs uppercase font-bold tracking-wide">Total Recebido</p>
+          <p id="cardTotalRecebido" class="text-2xl font-extrabold mt-1">R$ 0,00</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Nome do Cliente</label>
-          <input type="text" id="nomeCliente" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: João Silva">
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow text-center">
+          <p class="text-xs uppercase font-bold tracking-wide">A Receber</p>
+          <p id="cardAReceber" class="text-2xl font-extrabold mt-1">R$ 0,00</p>
         </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">WhatsApp do Cliente (com DDD)</label>
-          <input type="text" id="whatsCliente" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: 31999999999">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Tipo / Status de Pagamento</label>
-          <select id="statusPagamento" class="w-full mt-1 p-2 border rounded-md bg-white">
-            <option value="Orçamento">Orçamento (Proposta)</option>
-            <option value="Mensalista">Pagamento Mensalista</option>
-            <option value="Pago Parcial">Pago Parcial</option>
-            <option value="Pago Integral (Quitado)">Pago Integral (Quitado)</option>
-          </select>
+        <div class="bg-sky-600 text-white p-4 rounded-lg shadow text-center">
+          <p class="text-xs uppercase font-bold tracking-wide">Clientes Inadimplentes</p>
+          <p id="cardInadimplentes" class="text-2xl font-extrabold mt-1">0</p>
         </div>
       </div>
 
-      <hr>
-
-      <!-- Bloco 2: Lista de Serviços e Valores -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Itens / Serviços</label>
-        <div id="lista-itens" class="space-y-3">
-          <div class="flex gap-2 item-row">
-            <input type="text" placeholder="Descrição do serviço" class="nome-item w-2/3 p-2 border rounded-md">
-            <input type="number" oninput="calcularOrcamento()" placeholder="Valor R$" class="valor-item w-1/3 p-2 border rounded-md">
+      <!-- 1. Dados da Sua Empresa -->
+      <div class="border-t pt-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-3">1. Dados da Sua Empresa</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">Sua Marca / Nome Fantasia</label>
+            <input type="text" id="empresaNome" class="w-full p-2 border rounded-md text-sm" placeholder="Ex: Senna Serviços Web">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">Seu Nome / Razão Social</label>
+            <input type="text" id="empresaRazao" class="w-full p-2 border rounded-md text-sm" placeholder="Razão Social ou Nome Completo">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">CNPJ / CPF / Telefone</label>
+            <input type="text" id="empresaDoc" class="w-full p-2 border rounded-md text-sm" placeholder="00.000.000/0001-00 - (31) 99999-9999">
           </div>
         </div>
-        <button onclick="adicionarLinha()" class="mt-3 w-full bg-gray-200 text-gray-800 py-1.5 rounded-md hover:bg-gray-300 text-sm font-bold">+ Adicionar Item</button>
       </div>
 
-      <!-- Bloco 3: Desconto e Totais -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Desconto (%)</label>
-          <input type="number" id="desconto" oninput="calcularOrcamento()" class="w-full mt-1 p-2 border rounded-md" placeholder="Ex: 5">
+      <!-- 2. Dados do Cliente -->
+      <div class="border-t pt-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-3">2. Dados do Cliente</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">Nome do Cliente</label>
+            <input type="text" id="clienteNome" class="w-full p-2 border rounded-md text-sm" placeholder="Ex: João Silva">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">WhatsApp do Cliente</label>
+            <input type="text" id="clienteWhats" class="w-full p-2 border rounded-md text-sm" placeholder="31999999999">
+          </div>
         </div>
-        <div class="bg-gray-50 p-4 rounded-md border text-right">
-          <span class="text-gray-600 font-medium text-sm block">Total Estimado:</span>
-          <span id="resultado" class="text-2xl font-bold text-gray-800">R$ 0,00</span>
+      </div>
+
+      <!-- 3. Serviços / Prestados -->
+      <div class="border-t pt-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-3">3. Serviços / Prestados</h2>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="border-b bg-gray-50 text-gray-600">
+                <th class="p-2">Descrição</th>
+                <th class="p-2 w-20">Qtd</th>
+                <th class="p-2 w-28">Vlr. Unit (R$)</th>
+                <th class="p-2 w-16 text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaServicos">
+              <tr class="border-b item-linha">
+                <td class="p-2"><input type="text" class="desc-item w-full p-1 border rounded" placeholder="Ex: Serviços"></td>
+                <td class="p-2"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded"></td>
+                <td class="p-2"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded"></td>
+                <td class="p-2 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <button onclick="adicionarLinhaTabela()" class="mt-3 bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-bold hover:bg-emerald-700">+ Adicionar Item</button>
+      </div>
+
+      <!-- 4. Pagamentos -->
+      <div class="border-t pt-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-3">4. Pagamentos</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">Status do Pagamento</label>
+            <select id="statusPagamento" onchange="calcularGeral()" class="w-full p-2 border rounded-md text-sm bg-white">
+              <option value="Orçamento">Orçamento (Pendente)</option>
+              <option value="Mensalista">Pagamento Mensalista</option>
+              <option value="Pago Parcial">Pago Parcial</option>
+              <option value="Pago Integral (Quitado)">Pago Integral (Quitado)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600">Valor Adiantado (Se Pago Parcial)</label>
+            <input type="number" id="vlrAdiantado" oninput="calcularGeral()" class="w-full p-2 border rounded-md text-sm" placeholder="0.00">
+          </div>
+          <div class="bg-gray-50 p-4 rounded-md border text-right">
+            <span class="text-gray-600 text-sm font-semibold">Total do Serviço: </span>
+            <span id="totalCalculado" class="text-xl font-bold text-gray-800">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Observações -->
+      <div class="border-t pt-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-3">5. Observações</h2>
+        <textarea id="obsGeral" rows="3" class="w-full p-2 border rounded-md text-sm" placeholder="Observações, prazo de entrega, forma de pagamento..."></textarea>
       </div>
     </div>
 
-    <!-- Bloco 4: Ações (PDF e WhatsApp) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-4 border-t">
-      <button onclick="gerarPDF()" class="w-full bg-red-600 text-white py-2.5 rounded-md hover:bg-red-700 transition font-bold flex items-center justify-center gap-2">
-        📄 Gerar PDF
-      </button>
-      <button onclick="enviarWhatsAppCliente()" class="w-full bg-green-600 text-white py-2.5 rounded-md hover:bg-green-700 transition font-bold flex items-center justify-center gap-2">
-        💬 Enviar no WhatsApp
-      </button>
+    <!-- Ações e Emissão -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-4">
+      <button onclick="gerarPDF()" class="bg-amber-500 text-white py-2.5 rounded-md font-bold hover:bg-amber-600 text-sm transition">📄 Gerar Orçamento / Recibo PDF</button>
+      <button onclick="enviarWhatsApp()" class="bg-sky-600 text-white py-2.5 rounded-md font-bold hover:bg-sky-700 text-sm transition">💬 Gerar Recibo e Enviar no WhatsApp</button>
     </div>
+
+    <!-- 6. Histórico e Cobrança -->
+    <div class="border-t pt-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-3">6. Histórico e Cobrança</h2>
+      <button onclick="salvarNoHistorico()" class="w-full bg-purple-700 text-white py-2 rounded-md font-bold text-sm hover:bg-purple-800 transition mb-3">💾 Salvar no Histórico</button>
+      <div id="listaHistorico" class="space-y-2 text-sm text-gray-600">
+        <p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico local.</p>
+      </div>
+    </div>
+
+    <!-- 7. Backup dos Dados -->
+    <div class="border-t pt-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-3">7. Backup dos Dados</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button onclick="fazerBackup()" class="bg-purple-700 text-white py-2 rounded-md font-bold text-xs hover:bg-purple-800 transition">📥 Fazer Backup Dos Meus Dados</button>
+        <button onclick="restaurarBackup()" class="bg-slate-800 text-white py-2 rounded-md font-bold text-xs hover:bg-slate-900 transition">📤 Restaurar Dados</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- 3. TELA DE ACESSO EXPIRADO -->
-  <div id="expired-section" class="hidden bg-white p-8 rounded-xl shadow-md w-full max-w-md text-center">
+  <div id="expired-section" class="hidden max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md text-center">
     <h2 class="text-2xl font-bold text-red-600 mb-4">Período de Teste Expirado</h2>
-    <p class="text-gray-600 mb-6">Seus 30 dias de teste grátis terminaram. Para continuar utilizando a calculadora, entre em contato para renovar sua assinatura.</p>
+    <p class="text-gray-600 mb-6">Seus 30 dias de teste grátis terminaram. Entre em contato para renovar sua assinatura.</p>
     <a id="whatsapp-link" target="_blank" class="inline-block bg-green-500 text-white px-6 py-3 rounded-md font-bold hover:bg-green-600 transition">Renovar Acesso no WhatsApp</a>
     <br>
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
   <script>
-    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAMtufmBKrbAUjzvWVZPswOnQpSq_EuB_Y",
       authDomain: "orcamento-app-bd066.firebaseapp.com",
@@ -141,6 +203,8 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
+
     auth.onAuthStateChanged(user => {
       if (user) {
         verificarStatusAssinatura(user);
@@ -152,7 +216,6 @@
     function fazerRegistro() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
           const user = userCredential.user;
@@ -163,24 +226,17 @@
             approved: true
           });
         })
-        .catch((error) => {
-          document.getElementById('auth-error').innerText = "Erro ao registrar: " + error.message;
-        });
+        .catch((err) => { document.getElementById('auth-error').innerText = "Erro: " + err.message; });
     }
 
     function fazerLogin() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-
       auth.signInWithEmailAndPassword(email, password)
-        .catch((error) => {
-          document.getElementById('auth-error').innerText = "Erro ao entrar: " + error.message;
-        });
+        .catch((err) => { document.getElementById('auth-error').innerText = "Erro: " + err.message; });
     }
 
-    function fazerLogout() {
-      auth.signOut();
-    }
+    function fazerLogout() { auth.signOut(); }
 
     function verificarStatusAssinatura(user) {
       db.collection('users').doc(user.uid).get().then((doc) => {
@@ -188,18 +244,16 @@
           const data = doc.data();
           const startDate = new Date(data.trialStartDate);
           const currentDate = new Date();
-          
-          const diffTime = Math.abs(currentDate - startDate);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          const diffDays = Math.ceil(Math.abs(currentDate - startDate) / (1000 * 60 * 60 * 24));
           const diasRestantes = 30 - diffDays;
 
           if (diffDays <= 30 && data.approved !== false) {
             document.getElementById('trial-info').innerText = `Período de teste: restam ${diasRestantes > 0 ? diasRestantes : 0} dia(s).`;
             mostrarTela('app');
+            atualizarHistoricoUI();
           } else {
-            const numWhatsApp = "5531994110075"; 
-            const mensagem = encodeURIComponent(`Olá! Meu período de teste expirou (E-mail: ${user.email}). Gostaria de renovar meu acesso.`);
-            document.getElementById('whatsapp-link').href = `https://wa.me/${numWhatsApp}?text=${mensagem}`;
+            const mensagem = encodeURIComponent(`Olá! Meu período de teste expirou (E-mail: ${user.email}). Gostaria de renovar.`);
+            document.getElementById('whatsapp-link').href = `https://wa.me/5531999999999?text=${mensagem}`;
             mostrarTela('expired');
           }
         } else {
@@ -208,87 +262,135 @@
       });
     }
 
-    function atualizarEmpresa() {
-      const nome = document.getElementById('nomeEmpresa').value;
-      document.getElementById('displayEmpresa').innerText = nome.trim() !== "" ? nome : "Sua Empresa";
-    }
-
-    function adicionarLinha() {
-      const container = document.getElementById('lista-itens');
-      const novaLinha = document.createElement('div');
-      novaLinha.className = 'flex gap-2 item-row mt-2';
-      novaLinha.innerHTML = `
-        <input type="text" placeholder="Descrição do serviço" class="nome-item w-2/3 p-2 border rounded-md">
-        <input type="number" oninput="calcularOrcamento()" placeholder="Valor R$" class="valor-item w-1/3 p-2 border rounded-md">
+    function adicionarLinhaTabela() {
+      const tbody = document.getElementById('tabelaServicos');
+      const tr = document.createElement('tr');
+      tr.className = 'border-b item-linha';
+      tr.innerHTML = `
+        <td class="p-2"><input type="text" class="desc-item w-full p-1 border rounded" placeholder="Ex: Serviço"></td>
+        <td class="p-2"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded"></td>
+        <td class="p-2"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded"></td>
+        <td class="p-2 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
       `;
-      container.appendChild(novaLinha);
+      tbody.appendChild(tr);
     }
 
-    function calcularOrcamento() {
-      const valores = document.querySelectorAll('.valor-item');
-      let subtotal = 0;
-
-      valores.forEach(input => {
-        subtotal += parseFloat(input.value) || 0;
-      });
-
-      const desconto = parseFloat(document.getElementById('desconto').value) || 0;
-      let total = subtotal;
-
-      if (desconto > 0) {
-        total = total - (total * (desconto / 100));
+    function removerLinha(btn) {
+      const tr = btn.closest('tr');
+      if (document.querySelectorAll('.item-linha').length > 1) {
+        tr.remove();
+        calcularGeral();
       }
-
-      document.getElementById('resultado').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    function enviarWhatsAppCliente() {
-      const empresa = document.getElementById('nomeEmpresa').value || "Sua Empresa";
-      const cliente = document.getElementById('nomeCliente').value || "Cliente";
-      const whats = document.getElementById('whatsCliente').value;
-      const status = document.getElementById('statusPagamento').value;
-      
-      if (!whats) {
-        alert("Por favor, informe o WhatsApp do cliente.");
-        return;
-      }
+    function calcularGeral() {
+      const linhas = document.querySelectorAll('.item-linha');
+      let total = 0;
 
-      const nomes = document.querySelectorAll('.nome-item');
-      const valores = document.querySelectorAll('.valor-item');
-      
-      let resumoItens = "";
-      nomes.forEach((input, index) => {
-        const nome = input.value || "Serviço";
-        const val = parseFloat(valores[index].value) || 0;
-        resumoItens += `• ${nome}: R$ ${val.toFixed(2)}\n`;
+      linhas.forEach(row => {
+        const qtd = parseFloat(row.querySelector('.qtd-item').value) || 0;
+        const vlr = parseFloat(row.querySelector('.vlr-item').value) || 0;
+        total += qtd * vlr;
       });
 
-      const totalFormatado = document.getElementById('resultado').innerText;
-
-      const texto = `*${empresa}*\n` +
-                    `Olá ${cliente}!\n\n` +
-                    `*Status:* ${status}\n\n` +
-                    `*Itens:*\n${resumoItens}\n` +
-                    `*Total: ${totalFormatado}*\n\n` +
-                    `Qualquer dúvida estarei à disposição!`;
-
-      const link = `https://wa.me/55${whats}?text=${encodeURIComponent(texto)}`;
-      window.open(link, '_blank');
+      document.getElementById('totalCalculado').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      return total;
     }
 
     function gerarPDF() {
       const elemento = document.getElementById('area-pdf');
-      const nomeCliente = document.getElementById('nomeCliente').value || "Cliente";
-
-      const opcoes = {
-        margin: 10,
-        filename: `Orcamento_${nomeCliente}.pdf`,
+      const cliente = document.getElementById('clienteNome').value || "Cliente";
+      const opt = {
+        margin: 8,
+        filename: `Orcamento_${cliente}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
+      html2pdf().set(opt).from(elemento).save();
+    }
 
-      html2pdf().set(opcoes).from(elemento).save();
+    function enviarWhatsApp() {
+      const whats = document.getElementById('clienteWhats').value;
+      if (!whats) { alert("Informe o WhatsApp do cliente!"); return; }
+
+      const empresa = document.getElementById('empresaNome').value || "Sua Empresa";
+      const cliente = document.getElementById('clienteNome').value || "Cliente";
+      const status = document.getElementById('statusPagamento').value;
+      const total = document.getElementById('totalCalculado').innerText;
+
+      const texto = `*${empresa}*\n` +
+                    `Olá ${cliente}!\n\n` +
+                    `*Status:* ${status}\n` +
+                    `*Total:* ${total}\n\n` +
+                    `Qualquer dúvida estarei à disposição!`;
+
+      window.open(`https://wa.me/55${whats}?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+
+    function salvarNoHistorico() {
+      const cliente = document.getElementById('clienteNome').value || "Cliente Sem Nome";
+      const total = document.getElementById('totalCalculado').innerText;
+      const status = document.getElementById('statusPagamento').value;
+
+      historico.push({ cliente, total, status, data: new Date().toLocaleDateString('pt-BR') });
+      localStorage.setItem('gestor_historico', JSON.stringify(historico));
+      atualizarHistoricoUI();
+    }
+
+    function atualizarHistoricoUI() {
+      const div = document.getElementById('listaHistorico');
+      if (historico.length === 0) {
+        div.innerHTML = `<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico local.</p>`;
+        return;
+      }
+
+      let rec = 0, aRec = 0, inad = 0;
+      let html = '<ul class="space-y-1">';
+
+      historico.forEach(item => {
+        const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+        if (item.status.includes('Quitado')) rec += valorNum;
+        else { aRec += valorNum; inad++; }
+
+        html += `<li class="border-b pb-1 text-xs flex justify-between">
+          <span><strong>${item.cliente}</strong> (${item.status}) - ${item.data}</span>
+          <span class="font-bold">${item.total}</span>
+        </li>`;
+      });
+      html += '</ul>';
+
+      div.innerHTML = html;
+      document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('cardInadimplentes').innerText = inad;
+    }
+
+    function fazerBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historico));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", "backup_gestor.json");
+      anchor.click();
+    }
+
+    function restaurarBackup() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+          try {
+            historico = JSON.parse(readerEvent.target.result);
+            localStorage.setItem('gestor_historico', JSON.stringify(historico));
+            atualizarHistoricoUI();
+            alert("Backup restaurado com sucesso!");
+          } catch(err) { alert("Arquivo inválido!"); }
+        }
+      }
+      input.click();
     }
 
     function mostrarTela(tela) {
