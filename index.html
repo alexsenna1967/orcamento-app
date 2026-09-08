@@ -193,7 +193,7 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
-  <!-- LAYOUT DE IMPRESSÃO PERFEITO PARA PÁGINA ÚNICA A4 (Com Observações Incluídas) -->
+  <!-- LAYOUT DE IMPRESSÃO PERFEITO PARA PÁGINA ÚNICA A4 -->
   <div id="pdf-template" style="display: none; width: 700px; background: #ffffff; padding: 30px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
     
     <!-- Cabeçalho Empresa e Data -->
@@ -388,7 +388,7 @@
     }
 
     function calcularGeral() {
-      const linhas = document.querySelectorAll('.item-linha');
+      const linhas = document.querySelectorAll('#tabelaServicos .item-linha');
       let total = 0;
 
       linhas.forEach(row => {
@@ -426,8 +426,8 @@
       document.getElementById('pdf-cliente-nome').innerText = cliente;
       document.getElementById('pdf-cliente-whats').innerText = document.getElementById('clienteWhats').value || "Não informado";
 
-      // 2. Preenche os itens da tabela dinamicamente
-      const linhasTabela = document.querySelectorAll('.item-linha');
+      // 2. Preenche os itens da tabela dinamicamente com seletor seguro
+      const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
       let corpoTabelaHtml = '';
       let subtotalGeral = 0;
 
@@ -455,7 +455,7 @@
       document.getElementById('pdf-adiantado').innerText = adiantadoVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       document.getElementById('pdf-total').innerText = subtotalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-      // 4. Observações (Garante que a observação aparece no PDF se preenchida)
+      // 4. Observações
       const obsTexto = document.getElementById('obsGeral').value;
       const obsBox = document.getElementById('pdf-obs-box');
       if (obsTexto && obsTexto.trim() !== '') {
