@@ -42,7 +42,7 @@
     <!-- Aviso do Período de Teste -->
     <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
 
-    <!-- Cards Resumo Financeiro Ajustados -->
+    <!-- Cards Resumo Financeiro -->
     <div class="grid grid-cols-3 gap-2">
       <div class="bg-emerald-500 text-white p-3 rounded-lg shadow text-center">
         <p class="text-[10px] uppercase font-bold tracking-wide">Total Recebido</p>
@@ -166,6 +166,7 @@
     <!-- 6. Histórico, Filtro e Cobrança -->
     <div class="border-t pt-6">
       <h2 class="text-lg font-bold text-gray-800 mb-3">6. Histórico e Cobrança</h2>
+      <p class="text-xs text-gray-500 mb-2">💡 <i>Dica: Clique em qualquer item abaixo para carregá-lo de volta na tela e editá-lo ou gerar o PDF novamente.</i></p>
       <button onclick="salvarNoHistorico()" class="w-full bg-purple-700 text-white py-2 rounded-md font-bold text-sm hover:bg-purple-800 transition mb-3">💾 Salvar no Histórico</button>
       
       <!-- Filtro por Data -->
@@ -452,20 +453,79 @@
 
     function salvarNoHistorico() {
       const cliente = document.getElementById('clienteNome').value || "Cliente Sem Nome";
+      const clienteWhats = document.getElementById('clienteWhats').value || "";
       const total = document.getElementById('totalCalculado').innerText;
       const status = document.getElementById('statusPagamento').value;
+      const vlrAdiantado = document.getElementById('vlrAdiantado').value;
+      const obsGeral = document.getElementById('obsGeral').value;
       const dataInput = document.getElementById('orcamentoData').value;
       
       let dataFormatada = new Date().toLocaleDateString('pt-BR');
+      let dataParaInput = document.getElementById('orcamentoData').value;
+
       if (dataInput) {
         const partes = dataInput.split('-');
         dataFormatada = partes[2] + '/' + partes[1] + '/' + partes[0];
       }
 
-      historico.push({ cliente: cliente, total: total, status: status, data: dataFormatada });
+      // Recolher os itens da tabela de serviços
+      const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
+      let servicosSalvos = [];
+      linhasTabela.forEach(function(row) {
+        servicosSalvos.push({
+          desc: row.querySelector('.desc-item').value,
+          qtd: row.querySelector('.qtd-item').value,
+          vlr: row.querySelector('.vlr-item').value
+        });
+      });
+
+      historico.push({ 
+        cliente: cliente, 
+        clienteWhats: clienteWhats,
+        total: total, 
+        status: status, 
+        data: dataFormatada,
+        dataInput: dataParaInput,
+        vlrAdiantado: vlrAdiantado,
+        obsGeral: obsGeral,
+        servicos: servicosSalvos
+      });
+
       localStorage.setItem('gestor_historico', JSON.stringify(historico));
       atualizarHistoricoUI();
       alert("Orçamento salvo no histórico com sucesso!");
+    }
+
+    function carregarDoHistorico(index) {
+      const item = historico[index];
+      if (!item) return;
+
+      document.getElementById('clienteNome').value = item.cliente || '';
+      document.getElementById('clienteWhats').value = item.clienteWhats || '';
+      document.getElementById('statusPagamento').value = item.status || 'Orçamento';
+      document.getElementById('vlrAdiantado').value = item.vlrAdiantado || '';
+      document.getElementById('obsGeral').value = item.obsGeral || '';
+
+      if (item.dataInput) {
+        document.getElementById('orcamentoData').value = item.dataInput;
+      }
+
+      // Recriar linhas da tabela de serviços
+      if (item.servicos && item.servicos.length > 0) {
+        let htmlTabela = '';
+        item.servicos.forEach(function(s) {
+          htmlTabela += '<tr class="border-b item-linha">' +
+            '<td class="p-1"><input type="text" value="' + (s.desc || '') + '" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" value="' + (s.qtd || 1) + '" class="qtd-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" value="' + (s.vlr || '') + '" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>' +
+          '</tr>';
+        });
+        document.getElementById('tabelaServicos').innerHTML = htmlTabela;
+      }
+
+      calcularGeral();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function atualizarHistoricoUI() {
@@ -499,21 +559,19 @@
           }
 
           if (estaNoFiltro) {
-            // Nova regra ajustada:
             if (item.status.indexOf('Quitado') !== -1 || item.status.indexOf('Mensalista') !== -1) {
               rec += valorNum;
             } else if (item.status.indexOf('Parcial') !== -1) {
-              // Poderia ter lógica específica de adiantamento, mas somamos o valor ao receber por segurança ou conforme fluxo padrão
               aRec += valorNum; 
             } else if (item.status.indexOf('Orçamento') !== -1) {
-              qtdOrcamentos++; // Conta apenas como orçamento pendente, sem somar em "A Receber"
+              qtdOrcamentos++;
             } else {
               aRec += valorNum;
             }
 
-            html += '<li class="border-b pb-1 text-xs flex justify-between items-center">' +
-              '<span><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + ' - <span class="font-bold">' + item.total + '</span></span>' +
-              '<button onclick="apagarItemHistorico(' + index + ')" class="text-red-500 hover:text-red-700 font-bold ml-2 px-1" title="Apagar este item">❌</button>' +
+            html += '<li class="border-b pb-1.5 text-xs flex justify-between items-center hover:bg-blue-50 p-1 rounded transition cursor-pointer">' +
+              '<span onclick="carregarDoHistorico(' + index + ')" class="flex-1"><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + ' - <span class="font-bold">' + item.total + '</span> <span class="text-[10px] text-blue-600 underline ml-1">[Editar/Ver]</span></span>' +
+              '<button onclick="apagarItemHistorico(event, ' + index + ')" class="text-red-500 hover:text-red-700 font-bold ml-2 px-1" title="Apagar este item">❌</button>' +
             '</li>';
           }
         });
@@ -558,7 +616,8 @@
       atualizarHistoricoUI();
     }
 
-    function apagarItemHistorico(index) {
+    function apagarItemHistorico(event, index) {
+      event.stopPropagation();
       if (confirm("Tens a certeza que pretendes apagar este registo do histórico?")) {
         historico.splice(index, 1);
         localStorage.setItem('gestor_historico', JSON.stringify(historico));
