@@ -193,8 +193,8 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
-  <!-- LAYOUT DE IMPRESSÃO PERFEITO PARA PÁGINA ÚNICA A4 -->
-  <div id="pdf-template" style="display: none; width: 700px; background: #ffffff; padding: 30px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
+  <!-- TEMPLATE DO PDF (Visível apenas de forma absoluta fora da tela ou posicionado para renderização perfeita) -->
+  <div id="pdf-template" style="position: absolute; left: -9999px; top: 0; width: 700px; background: #ffffff; padding: 30px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
     
     <!-- Cabeçalho Empresa e Data -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 15px;">
@@ -381,7 +381,7 @@
 
     function removerLinha(btn) {
       const tr = btn.closest('tr');
-      if (document.querySelectorAll('.item-linha').length > 1) {
+      if (document.querySelectorAll('#tabelaServicos .item-linha').length > 1) {
         tr.remove();
         calcularGeral();
       }
@@ -426,7 +426,7 @@
       document.getElementById('pdf-cliente-nome').innerText = cliente;
       document.getElementById('pdf-cliente-whats').innerText = document.getElementById('clienteWhats').value || "Não informado";
 
-      // 2. Preenche os itens da tabela dinamicamente com seletor seguro
+      // 2. Preenche os itens da tabela dinamicamente
       const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
       let corpoTabelaHtml = '';
       let subtotalGeral = 0;
@@ -465,9 +465,8 @@
         obsBox.style.display = 'none';
       }
 
-      // 5. Gera o PDF
+      // 5. Gera o PDF utilizando o elemento posicionado fora da tela (sem usar display: none para evitar bug do html2canvas)
       const elementoPDF = document.getElementById('pdf-template');
-      elementoPDF.style.display = 'block';
 
       const opt = {
         margin:       5,
@@ -477,11 +476,8 @@
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(elementoPDF).save().then(() => {
-        elementoPDF.style.display = 'none';
-      }).catch(err => {
+      html2pdf().set(opt).from(elementoPDF).save().catch(err => {
         console.error(err);
-        elementoPDF.style.display = 'none';
         alert("Erro ao gerar PDF. Tente novamente.");
       });
     }
