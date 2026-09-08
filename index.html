@@ -42,7 +42,7 @@
     <!-- Aviso do Período de Teste -->
     <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
 
-    <!-- Cards Resumo Financeiro -->
+    <!-- Cards Resumo Financeiro Ajustados -->
     <div class="grid grid-cols-3 gap-2">
       <div class="bg-emerald-500 text-white p-3 rounded-lg shadow text-center">
         <p class="text-[10px] uppercase font-bold tracking-wide">Total Recebido</p>
@@ -53,8 +53,8 @@
         <p id="cardAReceber" class="text-lg font-extrabold mt-1">R$ 0,00</p>
       </div>
       <div class="bg-sky-600 text-white p-3 rounded-lg shadow text-center">
-        <p class="text-[10px] uppercase font-bold tracking-wide">Inadimplentes</p>
-        <p id="cardInadimplentes" class="text-lg font-extrabold mt-1">0</p>
+        <p class="text-[10px] uppercase font-bold tracking-wide">Orçamentos</p>
+        <p id="cardOrcamentos" class="text-lg font-extrabold mt-1">0</p>
       </div>
     </div>
 
@@ -476,11 +476,11 @@
         div.innerHTML = '<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>';
         document.getElementById('cardTotalRecebido').innerText = 'R$ 0,00';
         document.getElementById('cardAReceber').innerText = 'R$ 0,00';
-        document.getElementById('cardInadimplentes').innerText = '0';
+        document.getElementById('cardOrcamentos').innerText = '0';
         return;
       }
 
-      let rec = 0, aRec = 0, inad = 0;
+      let rec = 0, aRec = 0, qtdOrcamentos = 0;
       let html = '<div class="flex justify-end mb-2"><button onclick="apagarTodoHistorico()" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded font-bold hover:bg-red-200 transition">🗑️ Limpar Todo o Histórico</button></div>';
       
       if (listaParaExibir.length === 0) {
@@ -499,11 +499,16 @@
           }
 
           if (estaNoFiltro) {
-            if (item.status.indexOf('Quitado') !== -1) {
+            // Nova regra ajustada:
+            if (item.status.indexOf('Quitado') !== -1 || item.status.indexOf('Mensalista') !== -1) {
               rec += valorNum;
+            } else if (item.status.indexOf('Parcial') !== -1) {
+              // Poderia ter lógica específica de adiantamento, mas somamos o valor ao receber por segurança ou conforme fluxo padrão
+              aRec += valorNum; 
+            } else if (item.status.indexOf('Orçamento') !== -1) {
+              qtdOrcamentos++; // Conta apenas como orçamento pendente, sem somar em "A Receber"
             } else {
               aRec += valorNum;
-              inad++;
             }
 
             html += '<li class="border-b pb-1 text-xs flex justify-between items-center">' +
@@ -518,7 +523,7 @@
       div.innerHTML = html;
       document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      document.getElementById('cardInadimplentes').innerText = inad;
+      document.getElementById('cardOrcamentos').innerText = qtdOrcamentos;
     }
 
     function aplicarFiltroData() {
