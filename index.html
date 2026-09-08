@@ -194,8 +194,8 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
-  <!-- ÁREA DE IMPRESSÃO DO PDF (EXIBIDA FORA DA TELA COM POSICIONAMENTO ABSOLUTO) -->
-  <div id="pdf-template" style="position: absolute; left: -9999px; top: 0; width: 794px; background: #ffffff; padding: 30px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
+  <!-- LAYOUT DE IMPRESSÃO PROFISSIONAL (FIXO E VISÍVEL NO DOM DURANTE A GERAÇÃO) -->
+  <div id="pdf-template" style="display: none; width: 794px; background: #ffffff; padding: 40px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
     
     <!-- Cabeçalho Empresa e Data -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
@@ -273,7 +273,6 @@
     let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
 
-    // Preenche data atual por defeito no input de data
     document.getElementById('orcamentoData').valueAsDate = new Date();
 
     if (logoBase64) {
@@ -406,7 +405,7 @@
     function gerarPDF() {
       const cliente = document.getElementById('clienteNome').value || "Cliente";
       
-      // 1. Preenche os dados do template com os valores reais dos inputs
+      // 1. Preenche os dados do template
       document.getElementById('pdf-empresa-nome').innerText = document.getElementById('empresaNome').value || "Sua Empresa";
       document.getElementById('pdf-empresa-doc').innerText = document.getElementById('empresaDoc').value || "";
       
@@ -428,7 +427,7 @@
       document.getElementById('pdf-cliente-nome').innerText = document.getElementById('clienteNome').value || "Não informado";
       document.getElementById('pdf-cliente-whats').innerText = document.getElementById('clienteWhats').value || "Não informado";
 
-      // 2. Transfere os itens da tabela dinamicamente
+      // 2. Preenche os itens da tabela
       const linhasTabela = document.querySelectorAll('.item-linha');
       let corpoTabelaHtml = '';
       let subtotalGeral = 0;
@@ -467,17 +466,26 @@
         obsBox.style.display = 'none';
       }
 
-      // 5. Gera o PDF utilizando o elemento posicionado perfeitamente na memória
+      // 5. Torna o template visível momentaneamente para o html2canvas capturar perfeitamente
       const elementoPDF = document.getElementById('pdf-template');
+      elementoPDF.style.display = 'block';
+
       const opt = {
         margin:       10,
         filename:     `Orcamento_${cliente}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(elementoPDF).save();
+      html2pdf().set(opt).from(elementoPDF).save().then(() => {
+        // Oculta novamente após gerar o PDF
+        elementoPDF.style.display = 'none';
+      }).catch(err => {
+        console.error(err);
+        elementoPDF.style.display = 'none';
+        alert("Erro ao gerar PDF. Tente novamente.");
+      });
     }
 
     function enviarWhatsApp() {
