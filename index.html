@@ -43,119 +43,120 @@
     <!-- Aviso do Período de Teste -->
     <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
 
-    <div id="area-pdf" class="space-y-4 p-2">
-      
-      <!-- Cards Resumo Financeiro -->
+    <!-- Cards Resumo Financeiro -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="bg-emerald-500 text-white p-3 rounded-lg shadow text-center">
+        <p class="text-[10px] uppercase font-bold tracking-wide">Total Recebido</p>
+        <p id="cardTotalRecebido" class="text-lg font-extrabold mt-1">R$ 0,00</p>
+      </div>
+      <div class="bg-red-500 text-white p-3 rounded-lg shadow text-center">
+        <p class="text-[10px] uppercase font-bold tracking-wide">A Receber</p>
+        <p id="cardAReceber" class="text-lg font-extrabold mt-1">R$ 0,00</p>
+      </div>
+      <div class="bg-sky-600 text-white p-3 rounded-lg shadow text-center">
+        <p class="text-[10px] uppercase font-bold tracking-wide">Inadimplentes</p>
+        <p id="cardInadimplentes" class="text-lg font-extrabold mt-1">0</p>
+      </div>
+    </div>
+
+    <!-- Botão Limpar -->
+    <div class="flex justify-end">
+      <button onclick="limparDadosCliente()" class="bg-slate-600 text-white px-3 py-1.5 rounded-md text-xs font-bold hover:bg-slate-700 transition">🔄 Novo Orçamento (Limpar Cliente)</button>
+    </div>
+
+    <!-- 1. Dados da Sua Empresa -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">1. Dados da Sua Empresa</h2>
       <div class="grid grid-cols-3 gap-2">
-        <div class="bg-emerald-500 text-white p-3 rounded-lg shadow text-center">
-          <p class="text-[10px] uppercase font-bold tracking-wide">Total Recebido</p>
-          <p id="cardTotalRecebido" class="text-lg font-extrabold mt-1">R$ 0,00</p>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Logotipo</label>
+          <input type="file" id="empresaLogo" accept="image/*" onchange="carregarLogo(event)" class="w-full p-1 border rounded-md text-xs bg-white">
+          <div id="previewLogo" class="mt-1"></div>
         </div>
-        <div class="bg-red-500 text-white p-3 rounded-lg shadow text-center">
-          <p class="text-[10px] uppercase font-bold tracking-wide">A Receber</p>
-          <p id="cardAReceber" class="text-lg font-extrabold mt-1">R$ 0,00</p>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Nome Fantasia</label>
+          <input type="text" id="empresaNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
         </div>
-        <div class="bg-sky-600 text-white p-3 rounded-lg shadow text-center">
-          <p class="text-[10px] uppercase font-bold tracking-wide">Inadimplentes</p>
-          <p id="cardInadimplentes" class="text-lg font-extrabold mt-1">0</p>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">CNPJ / CPF / Tel</label>
+          <input type="text" id="empresaDoc" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
         </div>
       </div>
+    </div>
 
-      <!-- Botão para limpar dados do cliente sem apagar empresa -->
-      <div class="flex justify-end">
-        <button onclick="limparDadosCliente()" class="bg-slate-600 text-white px-3 py-1.5 rounded-md text-xs font-bold hover:bg-slate-700 transition">🔄 Novo Orçamento (Limpar Cliente)</button>
-      </div>
-
-      <!-- 1. Dados da Sua Empresa -->
-      <div class="border-t pt-2">
-        <h2 class="text-sm font-bold text-gray-800 mb-1">1. Dados da Sua Empresa</h2>
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">Logotipo</label>
-            <input type="file" id="empresaLogo" accept="image/*" onchange="carregarLogo(event)" class="w-full p-1 border rounded-md text-xs bg-white">
-            <div id="previewLogo" class="mt-1"></div>
-          </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">Nome Fantasia</label>
-            <input type="text" id="empresaNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
-          </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">CNPJ / CPF / Tel</label>
-            <input type="text" id="empresaDoc" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
-          </div>
+    <!-- 2. Dados do Cliente e Data -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">2. Dados do Cliente e Data</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Nome do Cliente</label>
+          <input type="text" id="clienteNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: João Silva">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">WhatsApp</label>
+          <input type="text" id="clienteWhats" class="w-full p-1.5 border rounded-md text-xs" placeholder="31999999999">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Data do Orçamento</label>
+          <input type="date" id="orcamentoData" class="w-full p-1.5 border rounded-md text-xs">
         </div>
       </div>
+    </div>
 
-      <!-- 2. Dados do Cliente -->
-      <div class="border-t pt-2">
-        <h2 class="text-sm font-bold text-gray-800 mb-1">2. Dados do Cliente</h2>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">Nome do Cliente</label>
-            <input type="text" id="clienteNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: João Silva">
-          </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">WhatsApp</label>
-            <input type="text" id="clienteWhats" class="w-full p-1.5 border rounded-md text-xs" placeholder="31999999999">
-          </div>
+    <!-- 3. Serviços / Prestados -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">3. Serviços / Prestados</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b bg-gray-50 text-gray-600">
+              <th class="p-1.5">Descrição</th>
+              <th class="p-1.5 w-16">Qtd</th>
+              <th class="p-1.5 w-24">Vlr. Unit (R$)</th>
+              <th class="p-1.5 w-12 text-center">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaServicos">
+            <tr class="border-b item-linha">
+              <td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>
+              <td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>
+              <td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>
+              <td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button onclick="adicionarLinhaTabela()" class="mt-2 bg-emerald-600 text-white px-3 py-1 rounded-md text-[10px] font-bold hover:bg-emerald-700">+ Adicionar Item</button>
+    </div>
+
+    <!-- 4. Pagamentos -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">4. Pagamentos</h2>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Status</label>
+          <select id="statusPagamento" onchange="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs bg-white">
+            <option value="Orçamento">Orçamento (Pendente)</option>
+            <option value="Mensalista">Pagamento Mensalista</option>
+            <option value="Pago Parcial">Pago Parcial</option>
+            <option value="Pago Integral (Quitado)">Pago Integral (Quitado)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Valor Adiantado</label>
+          <input type="number" id="vlrAdiantado" oninput="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs" placeholder="0.00">
         </div>
       </div>
-
-      <!-- 3. Serviços / Prestados -->
-      <div class="border-t pt-2">
-        <h2 class="text-sm font-bold text-gray-800 mb-1">3. Serviços / Prestados</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="border-b bg-gray-50 text-gray-600">
-                <th class="p-1.5">Descrição</th>
-                <th class="p-1.5 w-16">Qtd</th>
-                <th class="p-1.5 w-24">Vlr. Unit (R$)</th>
-                <th class="p-1.5 w-12 text-center">Ação</th>
-              </tr>
-            </thead>
-            <tbody id="tabelaServicos">
-              <tr class="border-b item-linha">
-                <td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>
-                <td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>
-                <td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>
-                <td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <button onclick="adicionarLinhaTabela()" class="mt-2 bg-emerald-600 text-white px-3 py-1 rounded-md text-[10px] font-bold hover:bg-emerald-700">+ Adicionar Item</button>
+      <div class="bg-gray-50 p-2 rounded-md border text-right mt-2">
+        <span class="text-gray-600 text-xs font-semibold">Total do Serviço: </span>
+        <span id="totalCalculado" class="text-base font-bold text-gray-800">R$ 0,00</span>
       </div>
+    </div>
 
-      <!-- 4. Pagamentos -->
-      <div class="border-t pt-2">
-        <h2 class="text-sm font-bold text-gray-800 mb-1">4. Pagamentos</h2>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">Status</label>
-            <select id="statusPagamento" onchange="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs bg-white">
-              <option value="Orçamento">Orçamento (Pendente)</option>
-              <option value="Mensalista">Pagamento Mensalista</option>
-              <option value="Pago Parcial">Pago Parcial</option>
-              <option value="Pago Integral (Quitado)">Pago Integral (Quitado)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600">Valor Adiantado</label>
-            <input type="number" id="vlrAdiantado" oninput="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs" placeholder="0.00">
-          </div>
-        </div>
-        <div class="bg-gray-50 p-2 rounded-md border text-right mt-2">
-          <span class="text-gray-600 text-xs font-semibold">Total do Serviço: </span>
-          <span id="totalCalculado" class="text-base font-bold text-gray-800">R$ 0,00</span>
-        </div>
-      </div>
-
-      <!-- 5. Observações -->
-      <div class="border-t pt-2">
-        <h2 class="text-sm font-bold text-gray-800 mb-1">5. Observações</h2>
-        <textarea id="obsGeral" rows="2" class="w-full p-1.5 border rounded-md text-xs" placeholder="Prazo de entrega, chave Pix..."></textarea>
-      </div>
+    <!-- 5. Observações -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">5. Observações</h2>
+      <textarea id="obsGeral" rows="2" class="w-full p-1.5 border rounded-md text-xs" placeholder="Prazo de entrega, chave Pix..."></textarea>
     </div>
 
     <!-- Ações e Emissão -->
@@ -193,6 +194,69 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
+  <!-- ÁREA OCULTA EXCLUSIVA PARA MONTAGEM DO PDF LIMPO E COMPLETO -->
+  <div id="pdf-template" class="hidden">
+    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 800px; margin: 0 auto; background: #fff;">
+      
+      <!-- Cabeçalho Empresa e Data -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div id="pdf-logo-container"></div>
+          <div>
+            <h2 id="pdf-empresa-nome" style="font-size: 18px; font-weight: bold; margin: 0;"></h2>
+            <p id="pdf-empresa-doc" style="font-size: 12px; color: #666; margin: 2px 0 0 0;"></p>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <h3 style="font-size: 16px; font-weight: bold; color: #2563eb; margin: 0;">ORÇAMENTO / RECIBO</h3>
+          <p style="font-size: 12px; color: #555; margin: 4px 0 0 0;">Data: <span id="pdf-data"></span></p>
+        </div>
+      </div>
+
+      <!-- Dados do Cliente -->
+      <div style="background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e2e8f0;">
+        <h4 style="font-size: 13px; font-weight: bold; margin: 0 0 5px 0; color: #1e293b;">Dados do Cliente</h4>
+        <p style="font-size: 12px; margin: 2px 0;"><strong>Nome:</strong> <span id="pdf-cliente-nome"></span></p>
+        <p style="font-size: 12px; margin: 2px 0;"><strong>WhatsApp:</strong> <span id="pdf-cliente-whats"></span></p>
+      </div>
+
+      <!-- Tabela de Serviços -->
+      <div style="margin-bottom: 15px;">
+        <h4 style="font-size: 13px; font-weight: bold; margin: 0 0 5px 0; color: #1e293b;">Serviços Solicitados</h4>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1;">
+              <th style="padding: 8px; text-align: left;">Descrição</th>
+              <th style="padding: 8px; text-align: center; width: 60px;">Qtd</th>
+              <th style="padding: 8px; text-align: right; width: 90px;">Vlr. Unit</th>
+              <th style="padding: 8px; text-align: right; width: 90px;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-tabela-corpo">
+            <!-- Preenchido via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totais e Pagamento -->
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+        <div style="width: 250px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 12px;">
+          <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Status:</span> <strong id="pdf-status"></strong></p>
+          <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Adiantado:</span> <strong id="pdf-adiantado"></strong></p>
+          <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 6px 0;">
+          <p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 14px;"><span>Total Geral:</span> <strong id="pdf-total" style="color: #16a34a;"></strong></p>
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div id="pdf-obs-box" style="background: #fffbeb; padding: 10px 15px; border-radius: 6px; border: 1px solid #fde68a; font-size: 12px;">
+        <h4 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #92400e;">Observações</h4>
+        <p id="pdf-obs-texto" style="margin: 0; color: #78350f; white-space: pre-wrap;"></p>
+      </div>
+
+    </div>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAMtufmBKrbAUjzvWVZPswOnQpSq_EuB_Y",
@@ -210,6 +274,9 @@
 
     let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
+
+    // Preenche data atual por defeito no input de data
+    document.getElementById('orcamentoData').valueAsDate = new Date();
 
     if (logoBase64) {
       document.getElementById('previewLogo').innerHTML = `<img src="${logoBase64}" class="h-10 object-contain mt-1">`;
@@ -288,6 +355,7 @@
     function limparDadosCliente() {
       document.getElementById('clienteNome').value = '';
       document.getElementById('clienteWhats').value = '';
+      document.getElementById('orcamentoData').valueAsDate = new Date();
       document.getElementById('vlrAdiantado').value = '';
       document.getElementById('obsGeral').value = '';
       document.getElementById('statusPagamento').value = 'Orçamento';
@@ -338,16 +406,84 @@
     }
 
     function gerarPDF() {
-      const elemento = document.getElementById('area-pdf');
       const cliente = document.getElementById('clienteNome').value || "Cliente";
+      
+      // 1. Preenche os dados do template oculto com os valores reais dos inputs
+      document.getElementById('pdf-empresa-nome').innerText = document.getElementById('empresaNome').value || "Sua Empresa";
+      document.getElementById('pdf-empresa-doc').innerText = document.getElementById('empresaDoc').value || "";
+      
+      const logoContainer = document.getElementById('pdf-logo-container');
+      if (logoBase64) {
+        logoContainer.innerHTML = `<img src="${logoBase64}" style="height: 45px; object-fit: contain;">`;
+      } else {
+        logoContainer.innerHTML = '';
+      }
+
+      const dataInput = document.getElementById('orcamentoData').value;
+      if (dataInput) {
+        const partes = dataInput.split('-');
+        document.getElementById('pdf-data').innerText = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      } else {
+        document.getElementById('pdf-data').innerText = new Date().toLocaleDateString('pt-BR');
+      }
+
+      document.getElementById('pdf-cliente-nome').innerText = document.getElementById('clienteNome').value || "Não informado";
+      document.getElementById('pdf-cliente-whats').innerText = document.getElementById('clienteWhats').value || "Não informado";
+
+      // 2. Transfere os itens da tabela dinamicamente
+      const linhasTabela = document.querySelectorAll('.item-linha');
+      let corpoTabelaHtml = '';
+      let subtotalGeral = 0;
+
+      linhasTabela.forEach(row => {
+        const desc = row.querySelector('.desc-item').value || "Serviço";
+        const qtd = parseFloat(row.querySelector('.qtd-item').value) || 0;
+        const vlr = parseFloat(row.querySelector('.vlr-item').value) || 0;
+        const subtotal = qtd * vlr;
+        subtotalGeral += subtotal;
+
+        corpoTabelaHtml += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 6px 8px;">${desc}</td>
+            <td style="padding: 6px 8px; text-align: center;">${qtd}</td>
+            <td style="padding: 6px 8px; text-align: right;">R$ ${vlr.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 6px 8px; text-align: right;">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
+          </tr>
+        `;
+      });
+      document.getElementById('pdf-tabela-corpo').innerHTML = corpoTabelaHtml;
+
+      // 3. Status, Adiantamento e Total
+      document.getElementById('pdf-status').innerText = document.getElementById('statusPagamento').value;
+      const adiantadoVal = parseFloat(document.getElementById('vlrAdiantado').value) || 0;
+      document.getElementById('pdf-adiantado').innerText = adiantadoVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('pdf-total').innerText = subtotalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      // 4. Observações
+      const obsTexto = document.getElementById('obsGeral').value;
+      const obsBox = document.getElementById('pdf-obs-box');
+      if (obsTexto.trim() !== '') {
+        document.getElementById('pdf-obs-texto').innerText = obsTexto;
+        obsBox.style.display = 'block';
+      } else {
+        obsBox.style.display = 'none';
+      }
+
+      // 5. Exibe temporariamente o template para captura e gera o PDF numa página limpa
+      const elementoPDF = document.getElementById('pdf-template');
+      elementoPDF.classList.remove('hidden');
+
       const opt = {
-        margin:       4,
+        margin:       10,
         filename:     `Orcamento_${cliente}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+        html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
-      html2pdf().set(opt).from(elemento).save();
+
+      html2pdf().set(opt).from(elementoPDF).save().then(() => {
+        elementoPDF.classList.add('hidden');
+      });
     }
 
     function enviarWhatsApp() {
