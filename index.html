@@ -352,7 +352,6 @@
         dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
       }
 
-      // Itens da Tabela
       const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
       let corpoTabelaHtml = '';
       let subtotalGeral = 0;
@@ -378,7 +377,6 @@
       const adiantadoVal = parseFloat(document.getElementById('vlrAdiantado').value) || 0;
       const obsTexto = document.getElementById('obsGeral').value;
 
-      // Abre janela de impressão formatada em PDF limpa e sem falhas
       const janelaPrint = window.open('', '_blank');
       janelaPrint.document.write(`
         <html>
