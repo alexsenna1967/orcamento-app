@@ -194,67 +194,65 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
-  <!-- ÁREA OCULTA EXCLUSIVA PARA MONTAGEM DO PDF LIMPO E COMPLETO -->
-  <div id="pdf-template" class="hidden">
-    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 800px; margin: 0 auto; background: #fff;">
-      
-      <!-- Cabeçalho Empresa e Data -->
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-          <div id="pdf-logo-container"></div>
-          <div>
-            <h2 id="pdf-empresa-nome" style="font-size: 18px; font-weight: bold; margin: 0;"></h2>
-            <p id="pdf-empresa-doc" style="font-size: 12px; color: #666; margin: 2px 0 0 0;"></p>
-          </div>
-        </div>
-        <div style="text-align: right;">
-          <h3 style="font-size: 16px; font-weight: bold; color: #2563eb; margin: 0;">ORÇAMENTO / RECIBO</h3>
-          <p style="font-size: 12px; color: #555; margin: 4px 0 0 0;">Data: <span id="pdf-data"></span></p>
+  <!-- ÁREA DE IMPRESSÃO DO PDF (EXIBIDA FORA DA TELA COM POSICIONAMENTO ABSOLUTO) -->
+  <div id="pdf-template" style="position: absolute; left: -9999px; top: 0; width: 794px; background: #ffffff; padding: 30px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
+    
+    <!-- Cabeçalho Empresa e Data -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <div id="pdf-logo-container"></div>
+        <div>
+          <h2 id="pdf-empresa-nome" style="font-size: 20px; font-weight: bold; margin: 0;"></h2>
+          <p id="pdf-empresa-doc" style="font-size: 13px; color: #666; margin: 4px 0 0 0;"></p>
         </div>
       </div>
-
-      <!-- Dados do Cliente -->
-      <div style="background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e2e8f0;">
-        <h4 style="font-size: 13px; font-weight: bold; margin: 0 0 5px 0; color: #1e293b;">Dados do Cliente</h4>
-        <p style="font-size: 12px; margin: 2px 0;"><strong>Nome:</strong> <span id="pdf-cliente-nome"></span></p>
-        <p style="font-size: 12px; margin: 2px 0;"><strong>WhatsApp:</strong> <span id="pdf-cliente-whats"></span></p>
+      <div style="text-align: right;">
+        <h3 style="font-size: 16px; font-weight: bold; color: #2563eb; margin: 0;">ORÇAMENTO / RECIBO</h3>
+        <p style="font-size: 13px; color: #555; margin: 4px 0 0 0;">Data: <span id="pdf-data"></span></p>
       </div>
-
-      <!-- Tabela de Serviços -->
-      <div style="margin-bottom: 15px;">
-        <h4 style="font-size: 13px; font-weight: bold; margin: 0 0 5px 0; color: #1e293b;">Serviços Solicitados</h4>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-          <thead>
-            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1;">
-              <th style="padding: 8px; text-align: left;">Descrição</th>
-              <th style="padding: 8px; text-align: center; width: 60px;">Qtd</th>
-              <th style="padding: 8px; text-align: right; width: 90px;">Vlr. Unit</th>
-              <th style="padding: 8px; text-align: right; width: 90px;">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody id="pdf-tabela-corpo">
-            <!-- Preenchido via JavaScript -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Totais e Pagamento -->
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-        <div style="width: 250px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 12px;">
-          <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Status:</span> <strong id="pdf-status"></strong></p>
-          <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Adiantado:</span> <strong id="pdf-adiantado"></strong></p>
-          <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 6px 0;">
-          <p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 14px;"><span>Total Geral:</span> <strong id="pdf-total" style="color: #16a34a;"></strong></p>
-        </div>
-      </div>
-
-      <!-- Observações -->
-      <div id="pdf-obs-box" style="background: #fffbeb; padding: 10px 15px; border-radius: 6px; border: 1px solid #fde68a; font-size: 12px;">
-        <h4 style="font-size: 13px; font-weight: bold; margin: 0 0 4px 0; color: #92400e;">Observações</h4>
-        <p id="pdf-obs-texto" style="margin: 0; color: #78350f; white-space: pre-wrap;"></p>
-      </div>
-
     </div>
+
+    <!-- Dados do Cliente -->
+    <div style="background: #f8fafc; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+      <h4 style="font-size: 14px; font-weight: bold; margin: 0 0 6px 0; color: #1e293b;">Dados do Cliente</h4>
+      <p style="font-size: 13px; margin: 3px 0;"><strong>Nome:</strong> <span id="pdf-cliente-nome"></span></p>
+      <p style="font-size: 13px; margin: 3px 0;"><strong>WhatsApp:</strong> <span id="pdf-cliente-whats"></span></p>
+    </div>
+
+    <!-- Tabela de Serviços -->
+    <div style="margin-bottom: 20px;">
+      <h4 style="font-size: 14px; font-weight: bold; margin: 0 0 8px 0; color: #1e293b;">Serviços Solicitados</h4>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+            <th style="padding: 10px; text-align: left;">Descrição</th>
+            <th style="padding: 10px; text-align: center; width: 60px;">Qtd</th>
+            <th style="padding: 10px; text-align: right; width: 100px;">Vlr. Unit</th>
+            <th style="padding: 10px; text-align: right; width: 100px;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="pdf-tabela-corpo">
+          <!-- Preenchido via JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Totais e Pagamento -->
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+      <div style="width: 280px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 13px;">
+        <p style="margin: 4px 0; display: flex; justify-content: space-between;"><span>Status:</span> <strong id="pdf-status"></strong></p>
+        <p style="margin: 4px 0; display: flex; justify-content: space-between;"><span>Adiantado:</span> <strong id="pdf-adiantado"></strong></p>
+        <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 8px 0;">
+        <p style="margin: 4px 0; display: flex; justify-content: space-between; font-size: 15px;"><span>Total Geral:</span> <strong id="pdf-total" style="color: #16a34a;"></strong></p>
+      </div>
+    </div>
+
+    <!-- Observações -->
+    <div id="pdf-obs-box" style="background: #fffbeb; padding: 12px 15px; border-radius: 6px; border: 1px solid #fde68a; font-size: 13px;">
+      <h4 style="font-size: 14px; font-weight: bold; margin: 0 0 6px 0; color: #92400e;">Observações</h4>
+      <p id="pdf-obs-texto" style="margin: 0; color: #78350f; white-space: pre-wrap;"></p>
+    </div>
+
   </div>
 
   <script>
@@ -408,13 +406,13 @@
     function gerarPDF() {
       const cliente = document.getElementById('clienteNome').value || "Cliente";
       
-      // 1. Preenche os dados do template oculto com os valores reais dos inputs
+      // 1. Preenche os dados do template com os valores reais dos inputs
       document.getElementById('pdf-empresa-nome').innerText = document.getElementById('empresaNome').value || "Sua Empresa";
       document.getElementById('pdf-empresa-doc').innerText = document.getElementById('empresaDoc').value || "";
       
       const logoContainer = document.getElementById('pdf-logo-container');
       if (logoBase64) {
-        logoContainer.innerHTML = `<img src="${logoBase64}" style="height: 45px; object-fit: contain;">`;
+        logoContainer.innerHTML = `<img src="${logoBase64}" style="height: 50px; object-fit: contain;">`;
       } else {
         logoContainer.innerHTML = '';
       }
@@ -444,10 +442,10 @@
 
         corpoTabelaHtml += `
           <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 6px 8px;">${desc}</td>
-            <td style="padding: 6px 8px; text-align: center;">${qtd}</td>
-            <td style="padding: 6px 8px; text-align: right;">R$ ${vlr.toFixed(2).replace('.', ',')}</td>
-            <td style="padding: 6px 8px; text-align: right;">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px 10px;">${desc}</td>
+            <td style="padding: 8px 10px; text-align: center;">${qtd}</td>
+            <td style="padding: 8px 10px; text-align: right;">R$ ${vlr.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px 10px; text-align: right;">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
           </tr>
         `;
       });
@@ -469,21 +467,17 @@
         obsBox.style.display = 'none';
       }
 
-      // 5. Exibe temporariamente o template para captura e gera o PDF numa página limpa
+      // 5. Gera o PDF utilizando o elemento posicionado perfeitamente na memória
       const elementoPDF = document.getElementById('pdf-template');
-      elementoPDF.classList.remove('hidden');
-
       const opt = {
         margin:       10,
         filename:     `Orcamento_${cliente}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(elementoPDF).save().then(() => {
-        elementoPDF.classList.add('hidden');
-      });
+      html2pdf().set(opt).from(elementoPDF).save();
     }
 
     function enviarWhatsApp() {
