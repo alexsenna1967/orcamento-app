@@ -439,38 +439,56 @@
       atualizarHistoricoUI();
     }
 
-    function atualizarHistoricoUI() {
-      const div = document.getElementById('listaHistorico');
-      if (historico.length === 0) {
-        div.innerHTML = '<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>';
-        return;
-      }
+   function atualizarHistoricoUI() {
+  const div = document.getElementById('listaHistorico');
+  if (historico.length === 0) {
+    div.innerHTML = '<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>';
+    return;
+  }
 
-      let rec = 0, aRec = 0, inad = 0;
-      let html = '<ul class="space-y-1">';
+  let rec = 0, aRec = 0, inad = 0;
+  let html = '<div class="flex justify-end mb-2"><button onclick="apagarTodoHistorico()" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded font-bold hover:bg-red-200 transition">🗑️ Limpar Todo o Histórico</button></div>';
+  html += '<ul class="space-y-1">';
 
-      historico.forEach(function(item) {
-        const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
-        if (item.status.indexOf('Quitado') !== -1) {
-          rec += valorNum;
-        } else {
-          aRec += valorNum;
-          inad++;
-        }
-
-        html += '<li class="border-b pb-1 text-xs flex justify-between">' +
-          '<span><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + '</span>' +
-          '<span class="font-bold">' + item.total + '</span>' +
-        '</li>';
-      });
-      html += '</ul>';
-
-      div.innerHTML = html;
-      document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      document.getElementById('cardInadimplentes').innerText = inad;
+  historico.forEach(function(item, index) {
+    const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+    if (item.status.indexOf('Quitado') !== -1) {
+      rec += valorNum;
+    } else {
+      aRec += valorNum;
+      inad++;
     }
 
+    html += '<li class="border-b pb-1 text-xs flex justify-between items-center">' +
+      '<span><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + ' - <span class="font-bold">' + item.total + '</span></span>' +
+      '<button onclick="apagarItemHistorico(' + index + ')" class="text-red-500 hover:text-red-700 font-bold ml-2 px-1" title="Apagar este item">❌</button>' +
+    '</li>';
+  });
+  html += '</ul>';
+
+  div.innerHTML = html;
+  document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('cardInadimplentes').innerText = inad;
+}
+// Apagar apenas um item específico do histórico pelo seu número (index)
+function apagarItemHistorico(index) {
+  if (confirm("Tens a certeza que pretendes apagar este registo do histórico?")) {
+    historico.splice(index, 1); // Remove o item da lista
+    localStorage.setItem('gestor_historico', JSON.stringify(historico)); // Atualiza o armazenamento
+    atualizarHistoricoUI(); // Atualiza a tela
+  }
+}
+
+// Apagar todo o histórico de uma vez
+function apagarTodoHistorico() {
+  if (confirm("⚠️ ATENÇÃO: Tens a certeza que pretendes apagar TODO o histórico? Esta ação não pode ser desfeita!")) {
+    historico = []; // Limpa a lista
+    localStorage.setItem('gestor_historico', JSON.stringify(historico)); // Atualiza o armazenamento
+    atualizarHistoricoUI(); // Atualiza a tela
+  }
+}
+    
     function fazerBackup() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historico));
       const anchor = document.createElement('a');
