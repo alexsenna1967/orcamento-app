@@ -43,21 +43,21 @@
     <!-- Aviso do Período de Teste -->
     <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
 
-    <div id="area-pdf" class="space-y-6">
+    <div id="area-pdf" class="space-y-4 p-2">
       
       <!-- Cards Resumo Financeiro -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-emerald-500 text-white p-4 rounded-lg shadow text-center">
-          <p class="text-xs uppercase font-bold tracking-wide">Total Recebido</p>
-          <p id="cardTotalRecebido" class="text-2xl font-extrabold mt-1">R$ 0,00</p>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-emerald-500 text-white p-3 rounded-lg shadow text-center">
+          <p class="text-[10px] uppercase font-bold tracking-wide">Total Recebido</p>
+          <p id="cardTotalRecebido" class="text-lg font-extrabold mt-1">R$ 0,00</p>
         </div>
-        <div class="bg-red-500 text-white p-4 rounded-lg shadow text-center">
-          <p class="text-xs uppercase font-bold tracking-wide">A Receber</p>
-          <p id="cardAReceber" class="text-2xl font-extrabold mt-1">R$ 0,00</p>
+        <div class="bg-red-500 text-white p-3 rounded-lg shadow text-center">
+          <p class="text-[10px] uppercase font-bold tracking-wide">A Receber</p>
+          <p id="cardAReceber" class="text-lg font-extrabold mt-1">R$ 0,00</p>
         </div>
-        <div class="bg-sky-600 text-white p-4 rounded-lg shadow text-center">
-          <p class="text-xs uppercase font-bold tracking-wide">Clientes Inadimplentes</p>
-          <p id="cardInadimplentes" class="text-2xl font-extrabold mt-1">0</p>
+        <div class="bg-sky-600 text-white p-3 rounded-lg shadow text-center">
+          <p class="text-[10px] uppercase font-bold tracking-wide">Inadimplentes</p>
+          <p id="cardInadimplentes" class="text-lg font-extrabold mt-1">0</p>
         </div>
       </div>
 
@@ -67,73 +67,73 @@
       </div>
 
       <!-- 1. Dados da Sua Empresa -->
-      <div class="border-t pt-4">
-        <h2 class="text-lg font-bold text-gray-800 mb-3">1. Dados da Sua Empresa</h2>
-        <div class="space-y-3">
+      <div class="border-t pt-2">
+        <h2 class="text-sm font-bold text-gray-800 mb-1">1. Dados da Sua Empresa</h2>
+        <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-gray-600">Logotipo da Empresa</label>
-            <input type="file" id="empresaLogo" accept="image/*" onchange="carregarLogo(event)" class="w-full p-1 border rounded-md text-sm bg-white">
-            <div id="previewLogo" class="mt-2"></div>
+            <label class="block text-[10px] font-semibold text-gray-600">Logotipo</label>
+            <input type="file" id="empresaLogo" accept="image/*" onchange="carregarLogo(event)" class="w-full p-1 border rounded-md text-xs bg-white">
+            <div id="previewLogo" class="mt-1"></div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600">Sua Marca / Nome Fantasia</label>
-            <input type="text" id="empresaNome" class="w-full p-2 border rounded-md text-sm" placeholder="Ex: Senna Serviços Web">
+            <label class="block text-[10px] font-semibold text-gray-600">Nome Fantasia</label>
+            <input type="text" id="empresaNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600">CNPJ / CPF / Telefone</label>
-            <input type="text" id="empresaDoc" class="w-full p-2 border rounded-md text-sm" placeholder="00.000.000/0001-00 - (31) 99999-9999">
+            <label class="block text-[10px] font-semibold text-gray-600">CNPJ / CPF / Tel</label>
+            <input type="text" id="empresaDoc" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
           </div>
         </div>
       </div>
 
       <!-- 2. Dados do Cliente -->
-      <div class="border-t pt-4">
-        <h2 class="text-lg font-bold text-gray-800 mb-3">2. Dados do Cliente</h2>
-        <div class="space-y-3">
+      <div class="border-t pt-2">
+        <h2 class="text-sm font-bold text-gray-800 mb-1">2. Dados do Cliente</h2>
+        <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-gray-600">Nome do Cliente</label>
-            <input type="text" id="clienteNome" class="w-full p-2 border rounded-md text-sm" placeholder="Ex: João Silva">
+            <label class="block text-[10px] font-semibold text-gray-600">Nome do Cliente</label>
+            <input type="text" id="clienteNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: João Silva">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600">WhatsApp do Cliente</label>
-            <input type="text" id="clienteWhats" class="w-full p-2 border rounded-md text-sm" placeholder="31999999999">
+            <label class="block text-[10px] font-semibold text-gray-600">WhatsApp</label>
+            <input type="text" id="clienteWhats" class="w-full p-1.5 border rounded-md text-xs" placeholder="31999999999">
           </div>
         </div>
       </div>
 
       <!-- 3. Serviços / Prestados -->
-      <div class="border-t pt-4">
-        <h2 class="text-lg font-bold text-gray-800 mb-3">3. Serviços / Prestados</h2>
+      <div class="border-t pt-2">
+        <h2 class="text-sm font-bold text-gray-800 mb-1">3. Serviços / Prestados</h2>
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-sm">
+          <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="border-b bg-gray-50 text-gray-600">
-                <th class="p-2">Descrição</th>
-                <th class="p-2 w-20">Qtd</th>
-                <th class="p-2 w-28">Vlr. Unit (R$)</th>
-                <th class="p-2 w-16 text-center">Ação</th>
+                <th class="p-1.5">Descrição</th>
+                <th class="p-1.5 w-16">Qtd</th>
+                <th class="p-1.5 w-24">Vlr. Unit (R$)</th>
+                <th class="p-1.5 w-12 text-center">Ação</th>
               </tr>
             </thead>
             <tbody id="tabelaServicos">
               <tr class="border-b item-linha">
-                <td class="p-2"><input type="text" class="desc-item w-full p-1 border rounded" placeholder="Ex: Criação de Site"></td>
-                <td class="p-2"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded"></td>
-                <td class="p-2"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded"></td>
-                <td class="p-2 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
+                <td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>
+                <td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>
+                <td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>
+                <td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
               </tr>
             </tbody>
           </table>
         </div>
-        <button onclick="adicionarLinhaTabela()" class="mt-3 bg-emerald-600 text-white px-4 py-1.5 rounded-md text-xs font-bold hover:bg-emerald-700">+ Adicionar Item</button>
+        <button onclick="adicionarLinhaTabela()" class="mt-2 bg-emerald-600 text-white px-3 py-1 rounded-md text-[10px] font-bold hover:bg-emerald-700">+ Adicionar Item</button>
       </div>
 
       <!-- 4. Pagamentos -->
-      <div class="border-t pt-4">
-        <h2 class="text-lg font-bold text-gray-800 mb-3">4. Pagamentos</h2>
-        <div class="space-y-3">
+      <div class="border-t pt-2">
+        <h2 class="text-sm font-bold text-gray-800 mb-1">4. Pagamentos</h2>
+        <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-semibold text-gray-600">Status do Pagamento</label>
-            <select id="statusPagamento" onchange="calcularGeral()" class="w-full p-2 border rounded-md text-sm bg-white">
+            <label class="block text-[10px] font-semibold text-gray-600">Status</label>
+            <select id="statusPagamento" onchange="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs bg-white">
               <option value="Orçamento">Orçamento (Pendente)</option>
               <option value="Mensalista">Pagamento Mensalista</option>
               <option value="Pago Parcial">Pago Parcial</option>
@@ -141,20 +141,20 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600">Valor Adiantado (Se Pago Parcial)</label>
-            <input type="number" id="vlrAdiantado" oninput="calcularGeral()" class="w-full p-2 border rounded-md text-sm" placeholder="0.00">
+            <label class="block text-[10px] font-semibold text-gray-600">Valor Adiantado</label>
+            <input type="number" id="vlrAdiantado" oninput="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs" placeholder="0.00">
           </div>
-          <div class="bg-gray-50 p-4 rounded-md border text-right">
-            <span class="text-gray-600 text-sm font-semibold">Total do Serviço: </span>
-            <span id="totalCalculado" class="text-xl font-bold text-gray-800">R$ 0,00</span>
-          </div>
+        </div>
+        <div class="bg-gray-50 p-2 rounded-md border text-right mt-2">
+          <span class="text-gray-600 text-xs font-semibold">Total do Serviço: </span>
+          <span id="totalCalculado" class="text-base font-bold text-gray-800">R$ 0,00</span>
         </div>
       </div>
 
       <!-- 5. Observações -->
-      <div class="border-t pt-4">
-        <h2 class="text-lg font-bold text-gray-800 mb-3">5. Observações</h2>
-        <textarea id="obsGeral" rows="3" class="w-full p-2 border rounded-md text-sm" placeholder="Prazo de entrega, chave Pix, dados bancários..."></textarea>
+      <div class="border-t pt-2">
+        <h2 class="text-sm font-bold text-gray-800 mb-1">5. Observações</h2>
+        <textarea id="obsGeral" rows="2" class="w-full p-1.5 border rounded-md text-xs" placeholder="Prazo de entrega, chave Pix..."></textarea>
       </div>
     </div>
 
@@ -212,7 +212,7 @@
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
 
     if (logoBase64) {
-      document.getElementById('previewLogo').innerHTML = `<img src="${logoBase64}" class="h-12 object-contain mt-1">`;
+      document.getElementById('previewLogo').innerHTML = `<img src="${logoBase64}" class="h-10 object-contain mt-1">`;
     }
 
     auth.onAuthStateChanged(user => {
@@ -263,7 +263,7 @@
             atualizarHistoricoUI();
           } else {
             const mensagem = encodeURIComponent(`Olá! Meu período de teste expirou (E-mail: ${user.email}). Gostaria de renovar.`);
-            document.getElementById('whatsapp-link').href = `https://wa.me/5531994110075?text=${mensagem}`;
+            document.getElementById('whatsapp-link').href = `https://wa.me/5531983367677?text=${mensagem}`;
             mostrarTela('expired');
           }
         } else {
@@ -279,7 +279,7 @@
         reader.onload = function(e) {
           logoBase64 = e.target.result;
           localStorage.setItem('gestor_logo', logoBase64);
-          document.getElementById('previewLogo').innerHTML = `<img src="${logoBase64}" class="h-12 object-contain mt-1">`;
+          document.getElementById('previewLogo').innerHTML = `<img src="${logoBase64}" class="h-10 object-contain mt-1">`;
         }
         reader.readAsDataURL(file);
       }
@@ -293,10 +293,10 @@
       document.getElementById('statusPagamento').value = 'Orçamento';
       document.getElementById('tabelaServicos').innerHTML = `
         <tr class="border-b item-linha">
-          <td class="p-2"><input type="text" class="desc-item w-full p-1 border rounded" placeholder="Ex: Criação de Site"></td>
-          <td class="p-2"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded"></td>
-          <td class="p-2"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded"></td>
-          <td class="p-2 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
+          <td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Criação de Site"></td>
+          <td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>
+          <td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>
+          <td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
         </tr>
       `;
       calcularGeral();
@@ -307,10 +307,10 @@
       const tr = document.createElement('tr');
       tr.className = 'border-b item-linha';
       tr.innerHTML = `
-        <td class="p-2"><input type="text" class="desc-item w-full p-1 border rounded" placeholder="Ex: Serviço"></td>
-        <td class="p-2"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded"></td>
-        <td class="p-2"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded"></td>
-        <td class="p-2 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
+        <td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>
+        <td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>
+        <td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>
+        <td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
       `;
       tbody.appendChild(tr);
     }
@@ -341,10 +341,10 @@
       const elemento = document.getElementById('area-pdf');
       const cliente = document.getElementById('clienteNome').value || "Cliente";
       const opt = {
-        margin:       5,
+        margin:       4,
         filename:     `Orcamento_${cliente}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(elemento).save();
