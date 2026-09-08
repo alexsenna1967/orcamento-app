@@ -96,7 +96,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600">WhatsApp do Cliente</label>
-            <input type="text" id="clienteWhats" class="w-full p-2 border rounded-md text-sm" placeholder="31994110075">
+            <input type="text" id="clienteWhats" class="w-full p-2 border rounded-md text-sm" placeholder="31999999999">
           </div>
         </div>
       </div>
@@ -211,7 +211,6 @@
     let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
 
-    // Restaurar logo salva ao carregar
     if (logoBase64) {
       document.getElementById('previewLogo').innerHTML = `<img src="${logoBase64}" class="h-12 object-contain mt-1">`;
     }
@@ -264,7 +263,7 @@
             atualizarHistoricoUI();
           } else {
             const mensagem = encodeURIComponent(`Olá! Meu período de teste expirou (E-mail: ${user.email}). Gostaria de renovar.`);
-            document.getElementById('whatsapp-link').href = `https://wa.me/5531999999999?text=${mensagem}`;
+            document.getElementById('whatsapp-link').href = `https://wa.me/5531994110075?text=${mensagem}`;
             mostrarTela('expired');
           }
         } else {
@@ -342,11 +341,11 @@
       const elemento = document.getElementById('area-pdf');
       const cliente = document.getElementById('clienteNome').value || "Cliente";
       const opt = {
-        margin: 8,
-        filename: `Orcamento_${cliente}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin:       5,
+        filename:     `Orcamento_${cliente}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(elemento).save();
     }
