@@ -163,10 +163,30 @@
       <button onclick="gerarPDF()" class="w-full bg-amber-500 text-white py-3 rounded-md font-bold hover:bg-amber-600 text-sm transition shadow">📄 Gerar Orçamento / Recibo PDF</button>
     </div>
 
-    <!-- 6. Histórico e Cobrança -->
+    <!-- 6. Histórico, Filtro e Cobrança -->
     <div class="border-t pt-6">
       <h2 class="text-lg font-bold text-gray-800 mb-3">6. Histórico e Cobrança</h2>
       <button onclick="salvarNoHistorico()" class="w-full bg-purple-700 text-white py-2 rounded-md font-bold text-sm hover:bg-purple-800 transition mb-3">💾 Salvar no Histórico</button>
+      
+      <!-- Filtro por Data -->
+      <div class="bg-gray-50 p-3 rounded-md border mb-3 space-y-2">
+        <p class="text-xs font-bold text-gray-700">📅 Filtrar Histórico por Período</p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-600">De:</label>
+            <input type="date" id="filtroDataInicio" class="w-full p-1 border rounded text-xs bg-white">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-600">Até:</label>
+            <input type="date" id="filtroDataFim" class="w-full p-1 border rounded text-xs bg-white">
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button onclick="aplicarFiltroData()" class="flex-1 bg-blue-600 text-white py-1 rounded text-xs font-bold hover:bg-blue-700 transition">Filtrar</button>
+          <button onclick="limparFiltroData()" class="flex-1 bg-gray-400 text-white py-1 rounded text-xs font-bold hover:bg-gray-500 transition">Mostrar Todos</button>
+        </div>
+      </div>
+
       <div id="listaHistorico" class="space-y-2 text-sm text-gray-600">
         <p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>
       </div>
@@ -192,7 +212,7 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
-  <!-- SCRIPT COMPLETO E SEGURO -->
+  <!-- SCRIPT COMPLETO E INTEGRADO -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAMtufmBKrbAUjzvWVZPswOnQpSq_EuB_Y",
@@ -210,6 +230,7 @@
 
     let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
+    let dadosFiltradosCache = null;
 
     document.getElementById('orcamentoData').valueAsDate = new Date();
 
@@ -433,62 +454,122 @@
       const cliente = document.getElementById('clienteNome').value || "Cliente Sem Nome";
       const total = document.getElementById('totalCalculado').innerText;
       const status = document.getElementById('statusPagamento').value;
+      const dataInput = document.getElementById('orcamentoData').value;
+      
+      let dataFormatada = new Date().toLocaleDateString('pt-BR');
+      if (dataInput) {
+        const partes = dataInput.split('-');
+        dataFormatada = partes[2] + '/' + partes[1] + '/' + partes[0];
+      }
 
-      historico.push({ cliente: cliente, total: total, status: status, data: new Date().toLocaleDateString('pt-BR') });
+      historico.push({ cliente: cliente, total: total, status: status, data: dataFormatada });
       localStorage.setItem('gestor_historico', JSON.stringify(historico));
+      atualizarHistoricoUI();
+      alert("Orçamento salvo no histórico com sucesso!");
+    }
+
+    function atualizarHistoricoUI() {
+      const div = document.getElementById('listaHistorico');
+      let listaParaExibir = (dadosFiltradosCache !== null) ? dadosFiltradosCache : historico;
+
+      if (historico.length === 0) {
+        div.innerHTML = '<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>';
+        document.getElementById('cardTotalRecebido').innerText = 'R$ 0,00';
+        document.getElementById('cardAReceber').innerText = 'R$ 0,00';
+        document.getElementById('cardInadimplentes').innerText = '0';
+        return;
+      }
+
+      let rec = 0, aRec = 0, inad = 0;
+      let html = '<div class="flex justify-end mb-2"><button onclick="apagarTodoHistorico()" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded font-bold hover:bg-red-200 transition">🗑️ Limpar Todo o Histórico</button></div>';
+      
+      if (listaParaExibir.length === 0) {
+        html += '<p class="italic text-xs text-gray-500 text-center py-2">Nenhum registro encontrado para este período.</p>';
+      } else {
+        html += '<ul class="space-y-1">';
+        
+        historico.forEach(function(item, index) {
+          const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+          let estaNoFiltro = true;
+          
+          if (dadosFiltradosCache !== null) {
+            estaNoFiltro = dadosFiltradosCache.some(function(filtroItem) {
+              return filtroItem.cliente === item.cliente && filtroItem.data === item.data && filtroItem.total === item.total;
+            });
+          }
+
+          if (estaNoFiltro) {
+            if (item.status.indexOf('Quitado') !== -1) {
+              rec += valorNum;
+            } else {
+              aRec += valorNum;
+              inad++;
+            }
+
+            html += '<li class="border-b pb-1 text-xs flex justify-between items-center">' +
+              '<span><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + ' - <span class="font-bold">' + item.total + '</span></span>' +
+              '<button onclick="apagarItemHistorico(' + index + ')" class="text-red-500 hover:text-red-700 font-bold ml-2 px-1" title="Apagar este item">❌</button>' +
+            '</li>';
+          }
+        });
+        html += '</ul>';
+      }
+
+      div.innerHTML = html;
+      document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('cardInadimplentes').innerText = inad;
+    }
+
+    function aplicarFiltroData() {
+      const dataInicioStr = document.getElementById('filtroDataInicio').value;
+      const dataFimStr = document.getElementById('filtroDataFim').value;
+
+      if (!dataInicioStr || !dataFimStr) {
+        alert("Por favor, selecione a data de início e de fim para filtrar.");
+        return;
+      }
+
+      const partesInicio = dataInicioStr.split('-');
+      const dataInicio = new Date(partesInicio[0], partesInicio[1] - 1, partesInicio[2]);
+
+      const partesFim = dataFimStr.split('-');
+      const dataFim = new Date(partesFim[0], partesFim[1] - 1, partesFim[2]);
+      dataFim.setHours(23, 59, 59);
+
+      dadosFiltradosCache = historico.filter(function(item) {
+        const partesDataItem = item.data.split('/');
+        const dataItem = new Date(partesDataItem[2], partesDataItem[1] - 1, partesDataItem[0]);
+        return dataItem >= dataInicio && dataItem <= dataFim;
+      });
+
       atualizarHistoricoUI();
     }
 
-   function atualizarHistoricoUI() {
-  const div = document.getElementById('listaHistorico');
-  if (historico.length === 0) {
-    div.innerHTML = '<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>';
-    return;
-  }
-
-  let rec = 0, aRec = 0, inad = 0;
-  let html = '<div class="flex justify-end mb-2"><button onclick="apagarTodoHistorico()" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded font-bold hover:bg-red-200 transition">🗑️ Limpar Todo o Histórico</button></div>';
-  html += '<ul class="space-y-1">';
-
-  historico.forEach(function(item, index) {
-    const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
-    if (item.status.indexOf('Quitado') !== -1) {
-      rec += valorNum;
-    } else {
-      aRec += valorNum;
-      inad++;
+    function limparFiltroData() {
+      document.getElementById('filtroDataInicio').value = '';
+      document.getElementById('filtroDataFim').value = '';
+      dadosFiltradosCache = null;
+      atualizarHistoricoUI();
     }
 
-    html += '<li class="border-b pb-1 text-xs flex justify-between items-center">' +
-      '<span><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + ' - <span class="font-bold">' + item.total + '</span></span>' +
-      '<button onclick="apagarItemHistorico(' + index + ')" class="text-red-500 hover:text-red-700 font-bold ml-2 px-1" title="Apagar este item">❌</button>' +
-    '</li>';
-  });
-  html += '</ul>';
+    function apagarItemHistorico(index) {
+      if (confirm("Tens a certeza que pretendes apagar este registo do histórico?")) {
+        historico.splice(index, 1);
+        localStorage.setItem('gestor_historico', JSON.stringify(historico));
+        atualizarHistoricoUI();
+      }
+    }
 
-  div.innerHTML = html;
-  document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('cardInadimplentes').innerText = inad;
-}
-// Apagar apenas um item específico do histórico pelo seu número (index)
-function apagarItemHistorico(index) {
-  if (confirm("Tens a certeza que pretendes apagar este registo do histórico?")) {
-    historico.splice(index, 1); // Remove o item da lista
-    localStorage.setItem('gestor_historico', JSON.stringify(historico)); // Atualiza o armazenamento
-    atualizarHistoricoUI(); // Atualiza a tela
-  }
-}
+    function apagarTodoHistorico() {
+      if (confirm("⚠️ ATENÇÃO: Tens a certeza que pretendes apagar TODO o histórico? Esta ação não pode ser desfeita!")) {
+        historico = [];
+        dadosFiltradosCache = null;
+        localStorage.setItem('gestor_historico', JSON.stringify(historico));
+        atualizarHistoricoUI();
+      }
+    }
 
-// Apagar todo o histórico de uma vez
-function apagarTodoHistorico() {
-  if (confirm("⚠️ ATENÇÃO: Tens a certeza que pretendes apagar TODO o histórico? Esta ação não pode ser desfeita!")) {
-    historico = []; // Limpa a lista
-    localStorage.setItem('gestor_historico', JSON.stringify(historico)); // Atualiza o armazenamento
-    atualizarHistoricoUI(); // Atualiza a tela
-  }
-}
-    
     function fazerBackup() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historico));
       const anchor = document.createElement('a');
@@ -508,6 +589,7 @@ function apagarTodoHistorico() {
           try {
             historico = JSON.parse(readerEvent.target.result);
             localStorage.setItem('gestor_historico', JSON.stringify(historico));
+            dadosFiltradosCache = null;
             atualizarHistoricoUI();
             alert("Backup restaurado com sucesso!");
           } catch(err) {
