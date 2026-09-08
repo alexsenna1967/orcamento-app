@@ -488,22 +488,24 @@
     }
 
     function enviarWhatsApp() {
-      const whats = document.getElementById('clienteWhats').value;
-      if (!whats) { alert("Informe o WhatsApp do cliente!"); return; }
-
-      const empresa = document.getElementById('empresaNome').value || "Sua Empresa";
-      const cliente = document.getElementById('clienteNome').value || "Cliente";
-      const status = document.getElementById('statusPagamento').value;
-      const total = document.getElementById('totalCalculado').innerText;
-
-      const texto = `*${empresa}*\n` +
-                    `Olá ${cliente}!\n\n` +
-                    `*Status:* ${status}\n` +
-                    `*Total:* ${total}\n\n` +
-                    `Qualquer dúvida estarei à disposição!`;
-
-      window.open(`https://wa.me/55${whats}?text=${encodeURIComponent(texto)}`, '_blank');
-    }
+    // 1. Obtém o número de telefone fixo ou do input, garantindo apenas números
+    let numeroTelefone = "5531983367677"; // Substitua ou pegue do seu input se necessário
+    
+    // 2. Monta o texto da mensagem de forma limpa
+    let cliente = document.getElementById('nomeCliente') ? document.getElementById('nomeCliente').value : "Cliente";
+    let total = document.getElementById('valorTotal') ? document.getElementById('valorTotal').innerText : "0,00";
+    
+    let mensagem = `Olá ${cliente}! Segue o orçamento no valor total de R$ ${total}. Qualquer dúvida estamos à disposição!`;
+    
+    // 3. Codifica a mensagem corretamente para URL
+    let mensagemCodificada = encodeURIComponent(mensagem);
+    
+    // 4. Monta a URL oficial do WhatsApp (wa.me é mais estável que a api antiga)
+    let urlWhatsApp = `https://wa.me/${numeroTelefone}?text=${mensagemCodificada}`;
+    
+    // 5. Abre a conversa numa nova aba
+    window.open(urlWhatsApp, '_blank');
+}
 
     function salvarNoHistorico() {
       const cliente = document.getElementById('clienteNome').value || "Cliente Sem Nome";
