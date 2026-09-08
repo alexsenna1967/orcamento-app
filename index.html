@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestor de Orçamentos e Recibos</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -159,7 +158,7 @@
       <textarea id="obsGeral" rows="2" class="w-full p-1.5 border rounded-md text-xs" placeholder="Prazo de entrega, chave Pix..."></textarea>
     </div>
 
-    <!-- Ações e Emissão (Apenas PDF) -->
+    <!-- Ações e Emissão -->
     <div class="border-t pt-4">
       <button onclick="gerarPDF()" class="w-full bg-amber-500 text-white py-3 rounded-md font-bold hover:bg-amber-600 text-sm transition shadow">📄 Gerar Orçamento / Recibo PDF</button>
     </div>
@@ -191,67 +190,6 @@
     <a id="whatsapp-link" target="_blank" class="inline-block bg-green-500 text-white px-6 py-3 rounded-md font-bold hover:bg-green-600 transition">Renovar Acesso no WhatsApp</a>
     <br>
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
-  </div>
-
-  <!-- TEMPLATE DO PDF (Visível apenas de forma absoluta fora da tela ou posicionado para renderização perfeita) -->
-  <div id="pdf-template" style="position: absolute; left: -9999px; top: 0; width: 700px; background: #ffffff; padding: 30px; font-family: Arial, sans-serif; color: #333; box-sizing: border-box;">
-    
-    <!-- Cabeçalho Empresa e Data -->
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 15px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div id="pdf-logo-container"></div>
-        <div>
-          <h2 id="pdf-empresa-nome" style="font-size: 16px; font-weight: bold; margin: 0;"></h2>
-          <p id="pdf-empresa-doc" style="font-size: 11px; color: #666; margin: 2px 0 0 0;"></p>
-        </div>
-      </div>
-      <div style="text-align: right;">
-        <h3 style="font-size: 14px; font-weight: bold; color: #2563eb; margin: 0;">ORÇAMENTO / RECIBO</h3>
-        <p style="font-size: 11px; color: #555; margin: 2px 0 0 0;">Data: <span id="pdf-data"></span></p>
-      </div>
-    </div>
-
-    <!-- Dados do Cliente -->
-    <div style="background: #f8fafc; padding: 10px 12px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #e2e8f0;">
-      <h4 style="font-size: 12px; font-weight: bold; margin: 0 0 4px 0; color: #1e293b;">Dados do Cliente</h4>
-      <p style="font-size: 11px; margin: 2px 0;"><strong>Nome:</strong> <span id="pdf-cliente-nome"></span></p>
-      <p style="font-size: 11px; margin: 2px 0;"><strong>WhatsApp / Contato:</strong> <span id="pdf-cliente-whats"></span></p>
-    </div>
-
-    <!-- Tabela de Serviços -->
-    <div style="margin-bottom: 15px;">
-      <h4 style="font-size: 12px; font-weight: bold; margin: 0 0 6px 0; color: #1e293b;">Serviços Solicitados</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-            <th style="padding: 6px 8px; text-align: left;">Descrição</th>
-            <th style="padding: 6px 8px; text-align: center; width: 50px;">Qtd</th>
-            <th style="padding: 6px 8px; text-align: right; width: 90px;">Vlr. Unit</th>
-            <th style="padding: 6px 8px; text-align: right; width: 90px;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody id="pdf-tabela-corpo">
-          <!-- Preenchido via JavaScript -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Totais e Pagamento -->
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-      <div style="width: 260px; background: #f8fafc; padding: 10px 12px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 11px;">
-        <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Status:</span> <strong id="pdf-status"></strong></p>
-        <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Adiantado:</span> <strong id="pdf-adiantado"></strong></p>
-        <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 6px 0;">
-        <p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 13px;"><span>Total Geral:</span> <strong id="pdf-total" style="color: #16a34a;"></strong></p>
-      </div>
-    </div>
-
-    <!-- Observações no PDF -->
-    <div id="pdf-obs-box" style="background: #fffbeb; padding: 10px 12px; border-radius: 4px; border: 1px solid #fde68a; font-size: 11px;">
-      <h4 style="font-size: 12px; font-weight: bold; margin: 0 0 4px 0; color: #92400e;">Observações</h4>
-      <p id="pdf-obs-texto" style="margin: 0; color: #78350f; white-space: pre-wrap;"></p>
-    </div>
-
   </div>
 
   <script>
@@ -402,31 +340,19 @@
     }
 
     function gerarPDF() {
+      const empresaNome = document.getElementById('empresaNome').value || "Sua Empresa";
+      const empresaDoc = document.getElementById('empresaDoc').value || "";
       const cliente = document.getElementById('clienteNome').value || "Cliente";
-      
-      // 1. Preenche os dados da empresa e data
-      document.getElementById('pdf-empresa-nome').innerText = document.getElementById('empresaNome').value || "Sua Empresa";
-      document.getElementById('pdf-empresa-doc').innerText = document.getElementById('empresaDoc').value || "";
-      
-      const logoContainer = document.getElementById('pdf-logo-container');
-      if (logoBase64) {
-        logoContainer.innerHTML = `<img src="${logoBase64}" style="height: 35px; object-fit: contain;">`;
-      } else {
-        logoContainer.innerHTML = '';
-      }
-
+      const clienteWhats = document.getElementById('clienteWhats').value || "Não informado";
       const dataInput = document.getElementById('orcamentoData').value;
+      
+      let dataFormatada = new Date().toLocaleDateString('pt-BR');
       if (dataInput) {
         const partes = dataInput.split('-');
-        document.getElementById('pdf-data').innerText = `${partes[2]}/${partes[1]}/${partes[0]}`;
-      } else {
-        document.getElementById('pdf-data').innerText = new Date().toLocaleDateString('pt-BR');
+        dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
       }
 
-      document.getElementById('pdf-cliente-nome').innerText = cliente;
-      document.getElementById('pdf-cliente-whats').innerText = document.getElementById('clienteWhats').value || "Não informado";
-
-      // 2. Preenche os itens da tabela dinamicamente
+      // Itens da Tabela
       const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
       let corpoTabelaHtml = '';
       let subtotalGeral = 0;
@@ -440,46 +366,99 @@
 
         corpoTabelaHtml += `
           <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 6px 8px;">${desc}</td>
-            <td style="padding: 6px 8px; text-align: center;">${qtd}</td>
-            <td style="padding: 6px 8px; text-align: right;">R$ ${vlr.toFixed(2).replace('.', ',')}</td>
-            <td style="padding: 6px 8px; text-align: right;">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px;">${desc}</td>
+            <td style="padding: 8px; text-align: center;">${qtd}</td>
+            <td style="padding: 8px; text-align: right;">R$ ${vlr.toFixed(2).replace('.', ',')}</td>
+            <td style="padding: 8px; text-align: right;">R$ ${subtotal.toFixed(2).replace('.', ',')}</td>
           </tr>
         `;
       });
-      document.getElementById('pdf-tabela-corpo').innerHTML = corpoTabelaHtml;
 
-      // 3. Status, Adiantamento e Total
-      document.getElementById('pdf-status').innerText = document.getElementById('statusPagamento').value;
+      const statusPagamento = document.getElementById('statusPagamento').value;
       const adiantadoVal = parseFloat(document.getElementById('vlrAdiantado').value) || 0;
-      document.getElementById('pdf-adiantado').innerText = adiantadoVal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      document.getElementById('pdf-total').innerText = subtotalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-      // 4. Observações
       const obsTexto = document.getElementById('obsGeral').value;
-      const obsBox = document.getElementById('pdf-obs-box');
-      if (obsTexto && obsTexto.trim() !== '') {
-        document.getElementById('pdf-obs-texto').innerText = obsTexto;
-        obsBox.style.display = 'block';
-      } else {
-        obsBox.style.display = 'none';
-      }
 
-      // 5. Gera o PDF utilizando o elemento posicionado fora da tela (sem usar display: none para evitar bug do html2canvas)
-      const elementoPDF = document.getElementById('pdf-template');
+      // Abre janela de impressão formatada em PDF limpa e sem falhas
+      const janelaPrint = window.open('', '_blank');
+      janelaPrint.document.write(`
+        <html>
+          <head>
+            <title>Orçamento - ${cliente}</title>
+            <style>
+              body { font-family: Arial, sans-serif; color: #333; padding: 20px; margin: 0; }
+              .container { max-width: 700px; margin: auto; border: 1px solid #ddd; padding: 30px; border-radius: 8px; }
+              .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 15px; }
+              .client-box { background: #f8fafc; padding: 10px 12px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #e2e8f0; font-size: 12px; }
+              table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px; }
+              th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 8px; text-align: left; }
+              .totals { width: 260px; margin-left: auto; background: #f8fafc; padding: 10px 12px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 12px; margin-bottom: 15px; }
+              .obs { background: #fffbeb; padding: 10px 12px; border-radius: 4px; border: 1px solid #fde68a; font-size: 12px; color: #78350f; }
+              @media print {
+                body { padding: 0; }
+                .container { border: none; padding: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <div>
+                  ${logoBase64 ? `<img src="${logoBase64}" style="height: 35px; object-fit: contain; margin-bottom: 5px;">` : ''}
+                  <h2 style="font-size: 16px; margin: 0;">${empresaNome}</h2>
+                  <p style="font-size: 11px; color: #666; margin: 2px 0 0 0;">${empresaDoc}</p>
+                </div>
+                <div style="text-align: right;">
+                  <h3 style="font-size: 14px; font-weight: bold; color: #2563eb; margin: 0;">ORÇAMENTO / RECIBO</h3>
+                  <p style="font-size: 11px; color: #555; margin: 2px 0 0 0;">Data: ${dataFormatada}</p>
+                </div>
+              </div>
 
-      const opt = {
-        margin:       5,
-        filename:     `Orcamento_${cliente}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+              <div class="client-box">
+                <h4 style="font-size: 12px; font-weight: bold; margin: 0 0 4px 0; color: #1e293b;">Dados do Cliente</h4>
+                <p style="margin: 2px 0;"><strong>Nome:</strong> ${cliente}</p>
+                <p style="margin: 2px 0;"><strong>WhatsApp / Contato:</strong> ${clienteWhats}</p>
+              </div>
 
-      html2pdf().set(opt).from(elementoPDF).save().catch(err => {
-        console.error(err);
-        alert("Erro ao gerar PDF. Tente novamente.");
-      });
+              <div>
+                <h4 style="font-size: 12px; font-weight: bold; margin: 0 0 6px 0; color: #1e293b;">Serviços Solicitados</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Descrição</th>
+                      <th style="text-align: center; width: 60px;">Qtd</th>
+                      <th style="text-align: right; width: 90px;">Vlr. Unit</th>
+                      <th style="text-align: right; width: 90px;">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${corpoTabelaHtml}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="totals">
+                <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Status:</span> <strong>${statusPagamento}</strong></p>
+                <p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Adiantado:</span> <strong>R$ ${adiantadoVal.toFixed(2).replace('.', ',')}</strong></p>
+                <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 6px 0;">
+                <p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 13px;"><span>Total Geral:</span> <strong style="color: #16a34a;">R$ ${subtotalGeral.toFixed(2).replace('.', ',')}</strong></p>
+              </div>
+
+              ${obsTexto ? `
+                <div class="obs">
+                  <h4 style="font-size: 12px; font-weight: bold; margin: 0 0 4px 0; color: #92400e;">Observações</h4>
+                  <p style="margin: 0; white-space: pre-wrap;">${obsTexto}</p>
+                </div>
+              ` : ''}
+            </div>
+            <script>
+              window.onload = function() {
+                window.print();
+              }
+            </script>
+          </body>
+        </html>
+      `);
+      janelaPrint.document.close();
     }
 
     function salvarNoHistorico() {
