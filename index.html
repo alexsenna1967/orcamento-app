@@ -39,6 +39,30 @@
       <button onclick="fazerLogout()" class="text-sm text-red-500 hover:underline font-semibold">Sair da Conta</button>
     </div>
 
+    <!-- PAINEL EXCLUSIVO DO DONO / ADMINISTRADOR -->
+    <div id="admin-panel" class="hidden bg-slate-900 text-white p-4 rounded-xl shadow-inner space-y-3 border-2 border-amber-400">
+      <div class="flex justify-between items-center">
+        <h2 class="text-base font-bold text-amber-400">👑 Painel de Controlo do Dono (Admin)</h2>
+        <span class="text-[10px] bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded">Área Restrita</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 text-center">
+          <p class="text-[10px] uppercase font-semibold text-gray-400">Total de Utilizadores Registados</p>
+          <p id="adminTotalUsers" class="text-xl font-extrabold text-white mt-1">0</p>
+        </div>
+        <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 text-center">
+          <p class="text-[10px] uppercase font-semibold text-gray-400">Contas Ativas</p>
+          <p id="adminActiveUsers" class="text-xl font-extrabold text-emerald-400 mt-1">0</p>
+        </div>
+      </div>
+      <details class="text-xs text-gray-300">
+        <summary class="cursor-pointer font-bold text-amber-300 hover:underline">Ver lista de e-mails cadastrados</summary>
+        <div id="adminUserList" class="mt-2 max-h-32 overflow-y-auto space-y-1 bg-slate-800 p-2 rounded text-[11px]">
+          <p class="italic text-gray-500">A carregar lista...</p>
+        </div>
+      </details>
+    </div>
+
     <!-- Aviso do Período de Teste -->
     <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
 
@@ -213,7 +237,7 @@
     <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
 
-  <!-- SCRIPT COMPLETO E INTEGRADO -->
+  <!-- SCRIPT COMPLETO E INTEGRADO COM PAINEL ADMIN -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAMtufmBKrbAUjzvWVZPswOnQpSq_EuB_Y",
@@ -229,6 +253,9 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // SUBSTITUA ABAIXO PELO SEU E-MAIL DE ADMINISTRADOR DO FIREBASE
+    const EMAIL_DONO = "brazsenna67@gmail.com"; // (Pode alterar para o seu e-mail de login real se for diferente)
+
     let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
     let dadosFiltradosCache = null;
@@ -242,10 +269,50 @@
     auth.onAuthStateChanged(function(user) {
       if (user) {
         verificarStatusAssinatura(user);
+        
+        // Verifica se o utilizador logado é o dono do app
+        if (user.email === EMAIL_DONO) {
+          document.getElementById('admin-panel').classList.remove('hidden');
+          carregarDadosAdmin();
+        } else {
+          document.getElementById('admin-panel').classList.add('hidden');
+        }
       } else {
         mostrarTela('auth');
       }
     });
+
+    function carregarDadosAdmin() {
+      db.collection('users').get().then(function(querySnapshot) {
+        let totalUsers = querySnapshot.size;
+        let activeUsers = 0;
+        let listaHtml = '';
+
+        querySnapshot.forEach(function(doc) {
+          const dados = doc.data();
+          const emailUser = dados.email || 'Sem e-mail';
+          
+          // Calcula se está dentro dos 30 dias de teste
+          if (dados.trialStartDate) {
+            const startDate = new Date(dados.trialStartDate);
+            const currentDate = new Date();
+            const diffTime = Math.abs(currentDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays <= 30 && dados.approved !== false) {
+              activeUsers++;
+            }
+          }
+
+          listaHtml += '<div class="flex justify-between border-b border-slate-700 pb-1"><span>👤 ' + emailUser + '</span><span class="text-gray-400">Reg: ' + (dados.trialStartDate ? dados.trialStartDate.split('T')[0] : '-') + '</span></div>';
+        });
+
+        document.getElementById('adminTotalUsers').innerText = totalUsers;
+        document.getElementById('adminActiveUsers').innerText = activeUsers;
+        document.getElementById('adminUserList').innerHTML = listaHtml || '<p class="text-gray-400">Nenhum utilizador encontrado.</p>';
+      }).catch(function(error) {
+        console.error("Erro ao carregar dados do admin: ", error);
+      });
+    }
 
     function fazerRegistro() {
       const email = document.getElementById('email').value;
@@ -279,6 +346,14 @@
     }
 
     function verificarStatusAssinatura(user) {
+      // Se for o dono, libera acesso direto sem travar os 30 dias
+      if (user.email === EMAIL_DONO) {
+        document.getElementById('trial-info').innerText = "Modo Administrador Principal Ativo.";
+        mostrarTela('app');
+        atualizarHistoricoUI();
+        return;
+      }
+
       db.collection('users').doc(user.uid).get().then(function(doc) {
         if (doc.exists) {
           const data = doc.data();
@@ -466,7 +541,6 @@
         dataFormatada = partes[2] + '/' + partes[1] + '/' + partes[0];
       }
 
-      // Recolher os itens da tabela de serviços preenchidos no momento
       const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
       let servicosSalvos = [];
       linhasTabela.forEach(function(row) {
@@ -508,7 +582,6 @@
         document.getElementById('orcamentoData').value = item.dataInput;
       }
 
-      // Preencher novamente a tabela de serviços com os dados salvos
       if (item.servicos && item.servicos.length > 0) {
         let htmlTabela = '';
         item.servicos.forEach(function(s) {
@@ -520,6 +593,14 @@
           '</tr>';
         });
         document.getElementById('tabelaServicos').innerHTML = htmlTabela;
+      } else {
+        document.getElementById('tabelaServicos').innerHTML = 
+          '<tr class="border-b item-linha">' +
+            '<td class="p-1"><input type="text" value="Serviço anterior (valor total: ' + item.total + ')" class="desc-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>' +
+          '</tr>';
       }
 
       calcularGeral();
@@ -640,7 +721,7 @@
       anchor.click();
     }
 
-    function restaurarBackup() {
+    function restaurarBackup>restaurarBackup() {
       const input = document.createElement('input');
       input.type = 'file';
       input.onchange = function(e) {
