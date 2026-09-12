@@ -12,6 +12,16 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-2 md:p-6">
 
+  <!-- PAINEL DO ADMINISTRADOR (Visível apenas para o teu e-mail) -->
+  <div id="admin-panel" class="hidden max-w-4xl mx-auto mb-4 bg-gray-900 text-amber-400 border-2 border-amber-400 p-4 rounded-xl shadow-md">
+    <h3 class="font-bold text-sm mb-1">Painel do Administrador (Exclusivo)</h3>
+    <p class="text-xs text-gray-300 mb-2">Controlo interno de acessos ao aplicativo.</p>
+    <div class="bg-gray-800 p-2.5 rounded border border-gray-700 flex justify-between items-center">
+      <span class="text-xs text-gray-300">Total de Pessoas Registadas no App:</span>
+      <span id="total-users-count" class="text-base font-bold text-white">A carregar...</span>
+    </div>
+  </div>
+
   <!-- 1. TELA DE LOGIN / REGISTRO -->
   <div id="auth-section" class="max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md">
     <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Acesse o Gestor</h2>
@@ -229,6 +239,9 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // O teu e-mail de administrador para ver a contagem de utilizadores
+    const EMAIL_ADMIN = "brazsenna67@gmail.com";
+
     let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
     let logoBase64 = localStorage.getItem('gestor_logo') || '';
     let dadosFiltradosCache = null;
@@ -241,11 +254,43 @@
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
+        // Verificar se é o administrador para mostrar o painel de contagem
+        if (user.email === EMAIL_ADMIN) {
+          document.getElementById('admin-panel').classList.remove('hidden');
+          carregarContagemUtilizadores();
+        } else {
+          document.getElementById('admin-panel').classList.add('hidden');
+        }
         verificarStatusAssinatura(user);
       } else {
+        document.getElementById('admin-panel').classList.add('hidden');
         mostrarTela('auth');
       }
     });
+
+    // Função para contar quantos utilizadores se registaram no Firebase
+    function carregarContagemUtilizadores() {
+      db.collection('users').get().then(function(querySnapshot) {
+        document.getElementById('total-users-count').innerText = querySnapshot.size + " utilizador(es)";
+      }).catch(function(err) {
+        document.getElementById('total-users-count').innerText = "Erro ao carregar";
+      });
+    }
+
+    // Função auxiliar para controlar qual secção/ecrã mostrar
+    function mostrarTela(tipo) {
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('app-section').classList.add('hidden');
+      document.getElementById('expired-section').classList.add('hidden');
+
+      if (tipo === 'auth') {
+        document.getElementById('auth-section').classList.remove('hidden');
+      } else if (tipo === 'app') {
+        document.getElementById('app-section').classList.remove('hidden');
+      } else if (tipo === 'expired') {
+        document.getElementById('expired-section').classList.remove('hidden');
+      }
+    }
 
     function fazerRegistro() {
       const email = document.getElementById('email').value;
@@ -507,7 +552,6 @@
         document.getElementById('orcamentoData').value = item.dataInput;
       }
 
-      // CORREÇÃO: Tratamento para itens antigos que não tinham a lista 'servicos' gravada
       if (item.servicos && item.servicos.length > 0) {
         let htmlTabela = '';
         item.servicos.forEach(function(s) {
@@ -520,7 +564,6 @@
         });
         document.getElementById('tabelaServicos').innerHTML = htmlTabela;
       } else {
-        // Se for um registo muito antigo sem serviços salvos, criamos uma linha em branco padrão
         document.getElementById('tabelaServicos').innerHTML = 
           '<tr class="border-b item-linha">' +
             '<td class="p-1"><input type="text" value="Serviço anterior (valor total: ' + item.total + ')" class="desc-item w-full p-1 border rounded text-xs"></td>' +
@@ -595,21 +638,17 @@
       const dataFimStr = document.getElementById('filtroDataFim').value;
 
       if (!dataInicioStr || !dataFimStr) {
-        alert("Por favor, selecione a data de início e de fim para filtrar.");
+        alert("Por favor, selecione a data de início e de fim.");
         return;
       }
 
-      const partesInicio = dataInicioStr.split('-');
-      const dataInicio = new Date(partesInicio[0], partesInicio[1] - 1, partesInicio[2]);
-
-      const partesFim = dataFimStr.split('-');
-      const dataFim = new Date(partesFim[0], partesFim[1] - 1, partesFim[2]);
-      dataFim.setHours(23, 59, 59);
+      const dataInicio = new Date(dataInicioStr + 'T00:00:00');
+      const dataFim = new Date(dataFimStr + 'T23:59:59');
 
       dadosFiltradosCache = historico.filter(function(item) {
-        const partesDataItem = item.data.split('/');
-        const dataItem = new Date(partesDataItem[2], partesDataItem[1] - 1, partesDataItem[0]);
-        return dataItem >= dataInicio && dataItem <= dataFim;
+        if (!item.dataInput) return false;
+        const itemDate = new Date(item.dataInput + 'T00:00:00');
+        return itemDate >= dataInicio && itemDate <= dataFim;
       });
 
       atualizarHistoricoUI();
@@ -624,7 +663,7 @@
 
     function apagarItemHistorico(event, index) {
       event.stopPropagation();
-      if (confirm("Tens a certeza que pretendes apagar este registo do histórico?")) {
+      if (confirm("Tem certeza que deseja apagar este registo?")) {
         historico.splice(index, 1);
         localStorage.setItem('gestor_historico', JSON.stringify(historico));
         atualizarHistoricoUI();
@@ -632,52 +671,55 @@
     }
 
     function apagarTodoHistorico() {
-      if (confirm("⚠️ ATENÇÃO: Tens a certeza que pretendes apagar TODO o histórico? Esta ação não pode ser desfeita!")) {
+      if (confirm("Tem certeza que deseja limpar todo o histórico?")) {
         historico = [];
-        dadosFiltradosCache = null;
-        localStorage.setItem('gestor_historico', JSON.stringify(historico));
+        localStorage.removeItem('gestor_historico');
         atualizarHistoricoUI();
       }
     }
 
     function fazerBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historico));
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", "backup_gestor.json");
-      anchor.click();
+      const dados = {
+        historico: historico,
+        logo: logoBase64
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "backup_gestor_orcamentos.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
     }
 
     function restaurarBackup() {
       const input = document.createElement('input');
       input.type = 'file';
+      input.accept = '.json';
       input.onchange = function(e) {
         const file = e.target.files[0];
         const reader = new FileReader();
-        reader.readAsText(file, 'UTF-8');
-        reader.onload = function(readerEvent) {
+        reader.onload = function(event) {
           try {
-            historico = JSON.parse(readerEvent.target.result);
-            localStorage.setItem('gestor_historico', JSON.stringify(historico));
-            dadosFiltradosCache = null;
+            const dados = JSON.parse(event.target.result);
+            if (dados.historico) {
+              historico = dados.historico;
+              localStorage.setItem('gestor_historico', JSON.stringify(historico));
+            }
+            if (dados.logo) {
+              logoBase64 = dados.logo;
+              localStorage.setItem('gestor_logo', logoBase64);
+              document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
+            }
             atualizarHistoricoUI();
             alert("Backup restaurado com sucesso!");
           } catch(err) {
-            alert("Arquivo inválido!");
+            alert("Erro ao ler o arquivo de backup.");
           }
         };
+        reader.readAsText(file);
       };
       input.click();
-    }
-
-    function mostrarTela(tela) {
-      document.getElementById('auth-section').classList.add('hidden');
-      document.getElementById('app-section').classList.add('hidden');
-      document.getElementById('expired-section').classList.add('hidden');
-
-      if (tela === 'auth') document.getElementById('auth-section').classList.remove('hidden');
-      if (tela === 'app') document.getElementById('app-section').classList.remove('hidden');
-      if (tela === 'expired') document.getElementById('expired-section').classList.remove('hidden');
     }
   </script>
 </body>
