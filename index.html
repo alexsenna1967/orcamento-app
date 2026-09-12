@@ -1,223 +1,684 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Orçamentos e Recibos</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDK (Modo Compatível) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Orçamentos e Recibos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-gray-100 min-y-screen p-4">
+<body class="bg-gray-100 min-h-screen p-2 md:p-6">
 
-    <!-- PAINEL DO ADMINISTRADOR (Visível apenas para o dono) -->
-    <div id="admin-panel" class="hidden max-w-4xl mx-auto mb-6 bg-gray-900 text-amber-400 border-2 border-amber-400 p-4 rounded-lg shadow-lg">
-        <h3 class="font-bold text-lg mb-2">Painel do Administrador (Exclusivo)</h3>
-        <p class="text-sm text-gray-300 mb-2">Monitorização de utilizadores e métricas do sistema.</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-gray-800 p-3 rounded border border-gray-700">
-                <p class="text-xs text-gray-400">Total de Contas Registadas:</p>
-                <p id="total-users" class="text-xl font-bold">A carregar...</p>
-            </div>
-            <div class="bg-gray-800 p-3 rounded border border-gray-700">
-                <p class="text-xs text-gray-400">Estado da Sessão:</p>
-                <p class="text-sm font-semibold text-green-400">Ativo como Administrador</p>
-            </div>
-        </div>
+  <!-- 1. TELA DE LOGIN / REGISTRO -->
+  <div id="auth-section" class="max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Acesse o Gestor</h2>
+    <div id="auth-error" class="text-red-500 text-sm mb-4 text-center"></div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">E-mail</label>
+        <input type="email" id="email" class="w-full mt-1 p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500" placeholder="seu@email.com">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Senha</label>
+        <input type="password" id="password" class="w-full mt-1 p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500" placeholder="******">
+      </div>
+      <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-bold transition">Entrar</button>
+      <button onclick="fazerRegistro()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-bold transition">Criar Conta Grátis (30 Dias)</button>
+    </div>
+  </div>
+
+  <!-- 2. PAINEL COMPLETO DO APLICATIVO -->
+  <div id="app-section" class="hidden max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-md space-y-6">
+    
+    <!-- Topo -->
+    <div class="flex justify-between items-center border-b pb-4">
+      <h1 class="text-2xl font-bold text-gray-800">Gestor de Orçamentos e Recibos</h1>
+      <button onclick="fazerLogout()" class="text-sm text-red-500 hover:underline font-semibold">Sair da Conta</button>
     </div>
 
-    <!-- ECRÃ DE AUTENTICAÇÃO (Login / Registo) -->
-    <div id="auth-screen" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mt-10">
-        <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Acesse o Gestor</h2>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2">E-mail</label>
-            <input type="email" id="email" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" placeholder="seu_email@email.com">
-        </div>
-        <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2">Senha</label>
-            <input type="password" id="password" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" placeholder="********">
-        </div>
-        <button onclick="fazerLogin()" class="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700 transition mb-3">Entrar</button>
-        <button onclick="fazerRegistro()" class="w-full bg-green-600 text-white p-2 rounded font-bold hover:bg-green-700 transition">Criar Conta Grátis (30 Dias)</button>
-        <div id="auth-error" class="text-red-500 text-sm mt-3 text-center font-semibold"></div>
+    <!-- Aviso do Período de Teste -->
+    <div id="trial-info" class="bg-blue-50 text-blue-700 p-3 rounded-md text-sm text-center font-medium"></div>
+
+    <!-- Cards Resumo Financeiro -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="bg-emerald-500 text-white p-3 rounded-lg shadow text-center">
+        <p class="text-[10px] uppercase font-bold tracking-wide">Total Recebido</p>
+        <p id="cardTotalRecebido" class="text-lg font-extrabold mt-1">R$ 0,00</p>
+      </div>
+      <div class="bg-red-500 text-white p-3 rounded-lg shadow text-center">
+        <p class="text-[10px] uppercase font-bold tracking-wide">A Receber</p>
+        <p id="cardAReceber" class="text-lg font-extrabold mt-1">R$ 0,00</p>
+      </div>
+      <div class="bg-sky-600 text-white p-3 rounded-lg shadow text-center">
+        <p class="text-[10px] uppercase font-bold tracking-wide">Orçamentos</p>
+        <p id="cardOrcamentos" class="text-lg font-extrabold mt-1">0</p>
+      </div>
     </div>
 
-    <!-- APLICAÇÃO COMPLETA DE ORÇAMENTOS -->
-    <div id="app-content" class="hidden max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <div class="flex justify-between items-center mb-6 border-b pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">Criador de Orçamentos</h1>
-            <div>
-                <span id="user-email-display" class="text-sm text-gray-600 mr-4"></span>
-                <button onclick="fazerLogout()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Sair</button>
-            </div>
-        </div>
-
-        <!-- Formulário de Orçamento (Layout Original) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-                <label class="block text-gray-700 text-sm font-bold mb-1">Nome do Cliente</label>
-                <input type="text" id="cliente-nome" class="w-full p-2 border rounded" placeholder="Nome do cliente">
-            </div>
-            <div>
-                <label class="block text-gray-700 text-sm font-bold mb-1">Data</label>
-                <input type="date" id="orcamento-data" class="w-full p-2 border rounded">
-            </div>
-        </div>
-
-        <!-- Tabela de Itens / Serviços -->
-        <div class="mb-4">
-            <h3 class="font-bold text-gray-700 mb-2">Serviços / Produtos</h3>
-            <div id="servicos-container" class="space-y-2 mb-2">
-                <!-- Os itens dinâmicos entram aqui -->
-            </div>
-            <button onclick="adicionarServico()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700">+ Adicionar Item</button>
-        </div>
-
-        <!-- Total e Ações -->
-        <div class="flex justify-between items-center border-t pt-4 mt-4">
-            <div class="text-xl font-bold text-gray-800">
-                Total: R$ <span id="valor-total">0.00</span>
-            </div>
-            <div class="space-x-2">
-                <button onclick="salvarHistorico()" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">Salvar no Histórico</button>
-                <button onclick="gerarPDF()" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Gerar PDF</button>
-            </div>
-        </div>
+    <!-- Botão Limpar -->
+    <div class="flex justify-end">
+      <button onclick="limparDadosCliente()" class="bg-slate-600 text-white px-3 py-1.5 rounded-md text-xs font-bold hover:bg-slate-700 transition">🔄 Novo Orçamento (Limpar Cliente)</button>
     </div>
 
-    <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXf123456789...", // Substitua pela sua chave correta se necessário
-            authDomain: "orcamento-app-bd066.firebaseapp.com",
-            projectId: "orcamento-app-bd066",
-            storageBucket: "orcamento-app-bd066.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
-        };
+    <!-- 1. Dados da Sua Empresa -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">1. Dados da Sua Empresa</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Logotipo</label>
+          <input type="file" id="empresaLogo" accept="image/*" onchange="carregarLogo(event)" class="w-full p-1 border rounded-md text-xs bg-white">
+          <div id="previewLogo" class="mt-1"></div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Nome Fantasia</label>
+          <input type="text" id="empresaNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">CNPJ / CPF / Tel</label>
+          <input type="text" id="empresaDoc" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
+        </div>
+      </div>
+    </div>
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+    <!-- 2. Dados do Cliente e Data -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">2. Dados do Cliente e Data</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Nome do Cliente</label>
+          <input type="text" id="clienteNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: João Silva">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">WhatsApp / Contato</label>
+          <input type="text" id="clienteWhats" class="w-full p-1.5 border rounded-md text-xs" placeholder="31983367677">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Data do Orçamento</label>
+          <input type="date" id="orcamentoData" class="w-full p-1.5 border rounded-md text-xs">
+        </div>
+      </div>
+    </div>
 
-        const EMAIL_DONO = "brazsenna67@gmail.com";
+    <!-- 3. Serviços / Prestados -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">3. Serviços / Prestados</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b bg-gray-50 text-gray-600">
+              <th class="p-1.5">Descrição</th>
+              <th class="p-1.5 w-16">Qtd</th>
+              <th class="p-1.5 w-24">Vlr. Unit (R$)</th>
+              <th class="p-1.5 w-12 text-center">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaServicos">
+            <tr class="border-b item-linha">
+              <td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>
+              <td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>
+              <td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>
+              <td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button onclick="adicionarLinhaTabela()" class="mt-2 bg-emerald-600 text-white px-3 py-1 rounded-md text-[10px] font-bold hover:bg-emerald-700">+ Adicionar Item</button>
+    </div>
 
-        // Controlo de Sessão
-        auth.onAuthStateChanged(function(user) {
-            if (user) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('user-email-display').innerText = user.email;
+    <!-- 4. Pagamentos -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">4. Pagamentos</h2>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Status</label>
+          <select id="statusPagamento" onchange="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs bg-white">
+            <option value="Orçamento">Orçamento (Pendente)</option>
+            <option value="Mensalista">Pagamento Mensalista</option>
+            <option value="Pago Parcial">Pago Parcial</option>
+            <option value="Pago Integral (Quitado)">Pago Integral (Quitado)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-gray-600">Valor Adiantado</label>
+          <input type="number" id="vlrAdiantado" oninput="calcularGeral()" class="w-full p-1.5 border rounded-md text-xs" placeholder="0.00">
+        </div>
+      </div>
+      <div class="bg-gray-50 p-2 rounded-md border text-right mt-2">
+        <span class="text-gray-600 text-xs font-semibold">Total do Serviço: </span>
+        <span id="totalCalculado" class="text-base font-bold text-gray-800">R$ 0,00</span>
+      </div>
+    </div>
 
-                if (user.email === EMAIL_DONO) {
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    carregarDadosAdmin();
-                } else {
-                    document.getElementById('admin-panel').classList.add('hidden');
-                }
-            } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('app-content').classList.add('hidden');
-                document.getElementById('admin-panel').classList.add('hidden');
-            }
+    <!-- 5. Observações -->
+    <div class="border-t pt-2">
+      <h2 class="text-sm font-bold text-gray-800 mb-1">5. Observações</h2>
+      <textarea id="obsGeral" rows="2" class="w-full p-1.5 border rounded-md text-xs" placeholder="Prazo de entrega, chave Pix..."></textarea>
+    </div>
+
+    <!-- Ações e Emissão -->
+    <div class="border-t pt-4">
+      <button onclick="gerarPDF()" class="w-full bg-amber-500 text-white py-3 rounded-md font-bold hover:bg-amber-600 text-sm transition shadow">📄 Gerar Orçamento / Recibo PDF</button>
+    </div>
+
+    <!-- 6. Histórico, Filtro e Cobrança -->
+    <div class="border-t pt-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-3">6. Histórico e Cobrança</h2>
+      <p class="text-xs text-gray-500 mb-2">💡 <i>Clique em qualquer item abaixo para carregá-lo de volta na tela e editá-lo.</i></p>
+      <button onclick="salvarNoHistorico()" class="w-full bg-purple-700 text-white py-2 rounded-md font-bold text-sm hover:bg-purple-800 transition mb-3">💾 Salvar no Histórico</button>
+      
+      <!-- Filtro por Data -->
+      <div class="bg-gray-50 p-3 rounded-md border mb-3 space-y-2">
+        <p class="text-xs font-bold text-gray-700">📅 Filtrar Histórico por Período</p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-600">De:</label>
+            <input type="date" id="filtroDataInicio" class="w-full p-1 border rounded text-xs bg-white">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-600">Até:</label>
+            <input type="date" id="filtroDataFim" class="w-full p-1 border rounded text-xs bg-white">
+          </div>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button onclick="aplicarFiltroData()" class="flex-1 bg-blue-600 text-white py-1 rounded text-xs font-bold hover:bg-blue-700 transition">Filtrar</button>
+          <button onclick="limparFiltroData()" class="flex-1 bg-gray-400 text-white py-1 rounded text-xs font-bold hover:bg-gray-500 transition">Mostrar Todos</button>
+        </div>
+      </div>
+
+      <div id="listaHistorico" class="space-y-2 text-sm text-gray-600">
+        <p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>
+      </div>
+    </div>
+
+    <!-- 7. Backup dos Dados -->
+    <div class="border-t pt-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-3">7. Backup dos Dados</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button onclick="fazerBackup()" class="bg-purple-700 text-white py-2 rounded-md font-bold text-xs hover:bg-purple-800 transition">📥 Fazer Backup Dos Meus Dados</button>
+        <button onclick="restaurarBackup()" class="bg-slate-800 text-white py-2 rounded-md font-bold text-xs hover:bg-slate-900 transition">📤 Restaurar Dados</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3. TELA DE ACESSO EXPIRADO -->
+  <div id="expired-section" class="hidden max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md text-center">
+    <h2 class="text-2xl font-bold text-red-600 mb-4">Período de Teste Expirado</h2>
+    <p class="text-gray-600 mb-6">Os seus 30 dias de teste grátis terminaram. Entre em contacto para renovar a assinatura.</p>
+    <a id="whatsapp-link" target="_blank" class="inline-block bg-green-500 text-white px-6 py-3 rounded-md font-bold hover:bg-green-600 transition">Renovar Acesso no WhatsApp</a>
+    <br>
+    <button onclick="fazerLogout()" class="mt-4 text-sm text-gray-500 underline">Voltar ao Login</button>
+  </div>
+
+  <!-- SCRIPT COMPLETO E INTEGRADO -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAMtufmBKrbAUjzvWVZPswOnQpSq_EuB_Y",
+      authDomain: "orcamento-app-bd066.firebaseapp.com",
+      projectId: "orcamento-app-bd066",
+      storageBucket: "orcamento-app-bd066.firebasestorage.app",
+      messagingSenderId: "1084353732196",
+      appId: "1:1084353732196:web:50ad6a30539b8a622a0971",
+      measurementId: "G-QH9HG5N1FX"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
+    let logoBase64 = localStorage.getItem('gestor_logo') || '';
+    let dadosFiltradosCache = null;
+
+    document.getElementById('orcamentoData').valueAsDate = new Date();
+
+    if (logoBase64) {
+      document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
+    }
+
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        verificarStatusAssinatura(user);
+      } else {
+        mostrarTela('auth');
+      }
+    });
+
+    function fazerRegistro() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(function(userCredential) {
+          const user = userCredential.user;
+          return db.collection('users').doc(user.uid).set({
+            email: user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            trialStartDate: new Date().toISOString(),
+            approved: true
+          });
+        })
+        .catch(function(err) {
+          document.getElementById('auth-error').innerText = "Erro: " + err.message;
         });
+    }
 
-        // Funções de Autenticação
-        function fazerRegistro() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            if (!email || !password) {
-                document.getElementById('auth-error').innerText = "Preencha o e-mail e a senha.";
-                return;
+    function fazerLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(function(err) {
+          document.getElementById('auth-error').innerText = "Erro: " + err.message;
+        });
+    }
+
+    function fazerLogout() {
+      auth.signOut();
+    }
+
+    function verificarStatusAssinatura(user) {
+      db.collection('users').doc(user.uid).get().then(function(doc) {
+        if (doc.exists) {
+          const data = doc.data();
+          const startDate = new Date(data.trialStartDate);
+          const currentDate = new Date();
+          const diffTime = Math.abs(currentDate - startDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          const diasRestantes = 30 - diffDays;
+
+          if (diffDays <= 30 && data.approved !== false) {
+            const diasTxt = diasRestantes > 0 ? diasRestantes : 0;
+            document.getElementById('trial-info').innerText = "Período de teste: restam " + diasTxt + " dia(s).";
+            mostrarTela('app');
+            atualizarHistoricoUI();
+          } else {
+            const mensagem = encodeURIComponent("Olá! Meu período de teste expirou (E-mail: " + user.email + "). Gostaria de renovar.");
+            document.getElementById('whatsapp-link').href = "https://wa.me/5531983367677?text=" + mensagem;
+            mostrarTela('expired');
+          }
+        } else {
+          mostrarTela('auth');
+        }
+      });
+    }
+
+    function carregarLogo(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          logoBase64 = e.target.result;
+          localStorage.setItem('gestor_logo', logoBase64);
+          document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function limparDadosCliente() {
+      document.getElementById('clienteNome').value = '';
+      document.getElementById('clienteWhats').value = '';
+      document.getElementById('orcamentoData').valueAsDate = new Date();
+      document.getElementById('vlrAdiantado').value = '';
+      document.getElementById('obsGeral').value = '';
+      document.getElementById('statusPagamento').value = 'Orçamento';
+      document.getElementById('tabelaServicos').innerHTML = 
+        '<tr class="border-b item-linha">' +
+          '<td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Criação de Site"></td>' +
+          '<td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>' +
+          '<td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>' +
+          '<td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>' +
+        '</tr>';
+      calcularGeral();
+    }
+
+    function adicionarLinhaTabela() {
+      const tbody = document.getElementById('tabelaServicos');
+      const tr = document.createElement('tr');
+      tr.className = 'border-b item-linha';
+      tr.innerHTML = 
+        '<td class="p-1"><input type="text" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>' +
+        '<td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>' +
+        '<td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>' +
+        '<td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>';
+      tbody.appendChild(tr);
+    }
+
+    function removerLinha(btn) {
+      const tr = btn.closest('tr');
+      if (document.querySelectorAll('#tabelaServicos .item-linha').length > 1) {
+        tr.remove();
+        calcularGeral();
+      }
+    }
+
+    function calcularGeral() {
+      const linhas = document.querySelectorAll('#tabelaServicos .item-linha');
+      let total = 0;
+
+      linhas.forEach(function(row) {
+        const qtd = parseFloat(row.querySelector('.qtd-item').value) || 0;
+        const vlr = parseFloat(row.querySelector('.vlr-item').value) || 0;
+        total += qtd * vlr;
+      });
+
+      document.getElementById('totalCalculado').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      return total;
+    }
+
+    function gerarPDF() {
+      const empresaNome = document.getElementById('empresaNome').value || "Sua Empresa";
+      const empresaDoc = document.getElementById('empresaDoc').value || "";
+      const cliente = document.getElementById('clienteNome').value || "Cliente";
+      const clienteWhats = document.getElementById('clienteWhats').value || "Não informado";
+      const dataInput = document.getElementById('orcamentoData').value;
+      
+      let dataFormatada = new Date().toLocaleDateString('pt-BR');
+      if (dataInput) {
+        const partes = dataInput.split('-');
+        dataFormatada = partes[2] + '/' + partes[1] + '/' + partes[0];
+      }
+
+      const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
+      let corpoTabelaHtml = '';
+      let subtotalGeral = 0;
+
+      linhasTabela.forEach(function(row) {
+        const desc = row.querySelector('.desc-item').value || "Serviço";
+        const qtd = parseFloat(row.querySelector('.qtd-item').value) || 0;
+        const vlr = parseFloat(row.querySelector('.vlr-item').value) || 0;
+        const subtotal = qtd * vlr;
+        subtotalGeral += subtotal;
+
+        corpoTabelaHtml += '<tr style="border-bottom: 1px solid #e2e8f0;">' +
+          '<td style="padding: 8px;">' + desc + '</td>' +
+          '<td style="padding: 8px; text-align: center;">' + qtd + '</td>' +
+          '<td style="padding: 8px; text-align: right;">R$ ' + vlr.toFixed(2).replace('.', ',') + '</td>' +
+          '<td style="padding: 8px; text-align: right;">R$ ' + subtotal.toFixed(2).replace('.', ',') + '</td>' +
+        '</tr>';
+      });
+
+      const statusPagamento = document.getElementById('statusPagamento').value;
+      const adiantadoVal = parseFloat(document.getElementById('vlrAdiantado').value) || 0;
+      const obsTexto = document.getElementById('obsGeral').value;
+
+      const janelaPrint = window.open('', '_blank');
+      
+      let htmlPrint = '<!DOCTYPE html><html><head><title>Orçamento - ' + cliente + '</title>';
+      htmlPrint += '<style>body { font-family: Arial, sans-serif; color: #333; padding: 20px; margin: 0; }';
+      htmlPrint += '.container { max-width: 700px; margin: auto; border: 1px solid #ddd; padding: 30px; border-radius: 8px; }';
+      htmlPrint += '.header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 15px; }';
+      htmlPrint += '.client-box { background: #f8fafc; padding: 10px 12px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #e2e8f0; font-size: 12px; }';
+      htmlPrint += 'table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 15px; }';
+      htmlPrint += 'th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 8px; text-align: left; }';
+      htmlPrint += '.totals { width: 260px; margin-left: auto; background: #f8fafc; padding: 10px 12px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 12px; margin-bottom: 15px; }';
+      htmlPrint += '.obs { background: #fffbeb; padding: 10px 12px; border-radius: 4px; border: 1px solid #fde68a; font-size: 12px; color: #78350f; }';
+      htmlPrint += '@media print { body { padding: 0; } .container { border: none; padding: 0; } }</style></head><body>';
+      htmlPrint += '<div class="container"><div class="header"><div>';
+      
+      if (logoBase64) {
+        htmlPrint += '<img src="' + logoBase64 + '" style="height: 35px; object-fit: contain; margin-bottom: 5px;">';
+      }
+      
+      htmlPrint += '<h2 style="font-size: 16px; margin: 0;">' + empresaNome + '</h2>';
+      htmlPrint += '<p style="font-size: 11px; color: #666; margin: 2px 0 0 0;">' + empresaDoc + '</p></div>';
+      htmlPrint += '<div style="text-align: right;"><h3 style="font-size: 14px; font-weight: bold; color: #2563eb; margin: 0;">ORÇAMENTO / RECIBO</h3>';
+      htmlPrint += '<p style="font-size: 11px; color: #555; margin: 2px 0 0 0;">Data: ' + dataFormatada + '</p></div></div>';
+
+      htmlPrint += '<div class="client-box"><h4 style="font-size: 12px; font-weight: bold; margin: 0 0 4px 0; color: #1e293b;">Dados do Cliente</h4>';
+      htmlPrint += '<p style="margin: 2px 0;"><strong>Nome:</strong> ' + cliente + '</p>';
+      htmlPrint += '<p style="margin: 2px 0;"><strong>WhatsApp / Contato:</strong> ' + clienteWhats + '</p></div>';
+
+      htmlPrint += '<div><h4 style="font-size: 12px; font-weight: bold; margin: 0 0 6px 0; color: #1e293b;">Serviços Solicitados</h4>';
+      htmlPrint += '<table><thead><tr><th>Descrição</th><th style="text-align: center; width: 60px;">Qtd</th><th style="text-align: right; width: 90px;">Vlr. Unit</th><th style="text-align: right; width: 90px;">Subtotal</th></tr></thead>';
+      htmlPrint += '<tbody>' + corpoTabelaHtml + '</tbody></table></div>';
+
+      htmlPrint += '<div class="totals"><p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Status:</span> <strong>' + statusPagamento + '</strong></p>';
+      htmlPrint += '<p style="margin: 3px 0; display: flex; justify-content: space-between;"><span>Adiantado:</span> <strong>R$ ' + adiantadoVal.toFixed(2).replace('.', ',') + '</strong></p>';
+      htmlPrint += '<hr style="border: none; border-top: 1px solid #cbd5e1; margin: 6px 0;">';
+      htmlPrint += '<p style="margin: 3px 0; display: flex; justify-content: space-between; font-size: 13px;"><span>Total Geral:</span> <strong style="color: #16a34a;">R$ ' + subtotalGeral.toFixed(2).replace('.', ',') + '</strong></p></div>';
+
+      if (obsTexto) {
+        htmlPrint += '<div class="obs"><h4 style="font-size: 12px; font-weight: bold; margin: 0 0 4px 0; color: #92400e;">Observações</h4>';
+        htmlPrint += '<p style="margin: 0; white-space: pre-wrap;">' + obsTexto + '</p></div>';
+      }
+
+      htmlPrint += '</div><script>window.onload = function() { window.print(); };<\/script></body></html>';
+
+      janelaPrint.document.write(htmlPrint);
+      janelaPrint.document.close();
+    }
+
+    function salvarNoHistorico() {
+      const cliente = document.getElementById('clienteNome').value || "Cliente Sem Nome";
+      const clienteWhats = document.getElementById('clienteWhats').value || "";
+      const total = document.getElementById('totalCalculado').innerText;
+      const status = document.getElementById('statusPagamento').value;
+      const vlrAdiantado = document.getElementById('vlrAdiantado').value;
+      const obsGeral = document.getElementById('obsGeral').value;
+      const dataInput = document.getElementById('orcamentoData').value;
+      
+      let dataFormatada = new Date().toLocaleDateString('pt-BR');
+      if (dataInput) {
+        const partes = dataInput.split('-');
+        dataFormatada = partes[2] + '/' + partes[1] + '/' + partes[0];
+      }
+
+      const linhasTabela = document.querySelectorAll('#tabelaServicos .item-linha');
+      let servicosSalvos = [];
+      linhasTabela.forEach(function(row) {
+        servicosSalvos.push({
+          desc: row.querySelector('.desc-item').value,
+          qtd: row.querySelector('.qtd-item').value,
+          vlr: row.querySelector('.vlr-item').value
+        });
+      });
+
+      historico.push({ 
+        cliente: cliente, 
+        clienteWhats: clienteWhats,
+        total: total, 
+        status: status, 
+        data: dataFormatada,
+        dataInput: dataInput,
+        vlrAdiantado: vlrAdiantado,
+        obsGeral: obsGeral,
+        servicos: servicosSalvos
+      });
+
+      localStorage.setItem('gestor_historico', JSON.stringify(historico));
+      atualizarHistoricoUI();
+      alert("Orçamento salvo no histórico com sucesso!");
+    }
+
+    function carregarDoHistorico(index) {
+      const item = historico[index];
+      if (!item) return;
+
+      document.getElementById('clienteNome').value = item.cliente || '';
+      document.getElementById('clienteWhats').value = item.clienteWhats || '';
+      document.getElementById('statusPagamento').value = item.status || 'Orçamento';
+      document.getElementById('vlrAdiantado').value = item.vlrAdiantado || '';
+      document.getElementById('obsGeral').value = item.obsGeral || '';
+
+      if (item.dataInput) {
+        document.getElementById('orcamentoData').value = item.dataInput;
+      }
+
+      // CORREÇÃO: Tratamento para itens antigos que não tinham a lista 'servicos' gravada
+      if (item.servicos && item.servicos.length > 0) {
+        let htmlTabela = '';
+        item.servicos.forEach(function(s) {
+          htmlTabela += '<tr class="border-b item-linha">' +
+            '<td class="p-1"><input type="text" value="' + (s.desc || '') + '" class="desc-item w-full p-1 border rounded text-xs" placeholder="Ex: Serviço"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" value="' + (s.qtd || 1) + '" class="qtd-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" value="' + (s.vlr || '') + '" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>' +
+          '</tr>';
+        });
+        document.getElementById('tabelaServicos').innerHTML = htmlTabela;
+      } else {
+        // Se for um registo muito antigo sem serviços salvos, criamos uma linha em branco padrão
+        document.getElementById('tabelaServicos').innerHTML = 
+          '<tr class="border-b item-linha">' +
+            '<td class="p-1"><input type="text" value="Serviço anterior (valor total: ' + item.total + ')" class="desc-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" value="1" class="qtd-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1"><input type="number" oninput="calcularGeral()" placeholder="0.00" class="vlr-item w-full p-1 border rounded text-xs"></td>' +
+            '<td class="p-1 text-center"><button onclick="removerLinha(this)" class="text-red-500 font-bold hover:underline">🗑️</button></td>' +
+          '</tr>';
+      }
+
+      calcularGeral();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function atualizarHistoricoUI() {
+      const div = document.getElementById('listaHistorico');
+      let listaParaExibir = (dadosFiltradosCache !== null) ? dadosFiltradosCache : historico;
+
+      if (historico.length === 0) {
+        div.innerHTML = '<p class="italic text-xs text-gray-400">Nenhum registro salvo no histórico.</p>';
+        document.getElementById('cardTotalRecebido').innerText = 'R$ 0,00';
+        document.getElementById('cardAReceber').innerText = 'R$ 0,00';
+        document.getElementById('cardOrcamentos').innerText = '0';
+        return;
+      }
+
+      let rec = 0, aRec = 0, qtdOrcamentos = 0;
+      let html = '<div class="flex justify-end mb-2"><button onclick="apagarTodoHistorico()" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded font-bold hover:bg-red-200 transition">🗑️ Limpar Todo o Histórico</button></div>';
+      
+      if (listaParaExibir.length === 0) {
+        html += '<p class="italic text-xs text-gray-500 text-center py-2">Nenhum registro encontrado para este período.</p>';
+      } else {
+        html += '<ul class="space-y-1">';
+        
+        historico.forEach(function(item, index) {
+          const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+          let estaNoFiltro = true;
+          
+          if (dadosFiltradosCache !== null) {
+            estaNoFiltro = dadosFiltradosCache.some(function(filtroItem) {
+              return filtroItem.cliente === item.cliente && filtroItem.data === item.data && filtroItem.total === item.total;
+            });
+          }
+
+          if (estaNoFiltro) {
+            if (item.status.indexOf('Quitado') !== -1 || item.status.indexOf('Mensalista') !== -1) {
+              rec += valorNum;
+            } else if (item.status.indexOf('Parcial') !== -1) {
+              aRec += valorNum; 
+            } else if (item.status.indexOf('Orçamento') !== -1) {
+              qtdOrcamentos++;
+            } else {
+              aRec += valorNum;
             }
 
-            document.getElementById('auth-error').innerText = "A criar conta...";
+            html += '<li class="border-b pb-1.5 text-xs flex justify-between items-center hover:bg-blue-50 p-1 rounded transition cursor-pointer">' +
+              '<span onclick="carregarDoHistorico(' + index + ')" class="flex-1"><strong>' + item.cliente + '</strong> (' + item.status + ') - ' + item.data + ' - <span class="font-bold">' + item.total + '</span> <span class="text-[10px] text-blue-600 underline ml-1">[Editar/Ver]</span></span>' +
+              '<button onclick="apagarItemHistorico(event, ' + index + ')" class="text-red-500 hover:text-red-700 font-bold ml-2 px-1" title="Apagar este item">❌</button>' +
+            '</li>';
+          }
+        });
+        html += '</ul>';
+      }
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(function(userCredential) {
-                    const user = userCredential.user;
-                    return db.collection('users').doc(user.uid).set({
-                        email: user.email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        approved: true
-                    });
-                })
-                .then(function() {
-                    document.getElementById('auth-error').innerText = "";
-                })
-                .catch(function(err) {
-                    document.getElementById('auth-error').innerText = "Erro: " + err.message;
-                });
-        }
+      div.innerHTML = html;
+      document.getElementById('cardTotalRecebido').innerText = rec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('cardAReceber').innerText = aRec.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('cardOrcamentos').innerText = qtdOrcamentos;
+    }
 
-        function fazerLogin() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
+    function aplicarFiltroData() {
+      const dataInicioStr = document.getElementById('filtroDataInicio').value;
+      const dataFimStr = document.getElementById('filtroDataFim').value;
 
-            if (!email || !password) {
-                document.getElementById('auth-error').innerText = "Preencha o e-mail e a senha.";
-                return;
-            }
+      if (!dataInicioStr || !dataFimStr) {
+        alert("Por favor, selecione a data de início e de fim para filtrar.");
+        return;
+      }
 
-            document.getElementById('auth-error').innerText = "A entrar...";
+      const partesInicio = dataInicioStr.split('-');
+      const dataInicio = new Date(partesInicio[0], partesInicio[1] - 1, partesInicio[2]);
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(function() {
-                    document.getElementById('auth-error').innerText = "";
-                })
-                .catch(function(err) {
-                    document.getElementById('auth-error').innerText = "Erro ao entrar: " + err.message;
-                });
-        }
+      const partesFim = dataFimStr.split('-');
+      const dataFim = new Date(partesFim[0], partesFim[1] - 1, partesFim[2]);
+      dataFim.setHours(23, 59, 59);
 
-        function fazerLogout() {
-            auth.signOut();
-        }
+      dadosFiltradosCache = historico.filter(function(item) {
+        const partesDataItem = item.data.split('/');
+        const dataItem = new Date(partesDataItem[2], partesDataItem[1] - 1, partesDataItem[0]);
+        return dataItem >= dataInicio && dataItem <= dataFim;
+      });
 
-        // Função do Painel Admin
-        function carregarDadosAdmin() {
-            db.collection('users').get().then(function(querySnapshot) {
-                document.getElementById('total-users').innerText = querySnapshot.size;
-            }).catch(function() {
-                document.getElementById('total-users').innerText = "Erro ao carregar";
-            });
-        }
+      atualizarHistoricoUI();
+    }
 
-        // Funções de Orçamento (Exemplo base)
-        function adicionarServico() {
-            const container = document.getElementById('servicos-container');
-            const div = document.createElement('div');
-            div.className = "flex gap-2 items-center";
-            div.innerHTML = `
-                <input type="text" placeholder="Descrição do serviço" class="flex-1 p-2 border rounded desc-servico">
-                <input type="number" placeholder="Valor (R$)" class="w-32 p-2 border rounded val-servico" oninput="calcularTotal()">
-                <button onclick="this.parentElement.remove(); calcularTotal()" class="bg-red-500 text-white px-3 py-2 rounded">X</button>
-            `;
-            container.appendChild(div);
-        }
+    function limparFiltroData() {
+      document.getElementById('filtroDataInicio').value = '';
+      document.getElementById('filtroDataFim').value = '';
+      dadosFiltradosCache = null;
+      atualizarHistoricoUI();
+    }
 
-        function calcularTotal() {
-            let total = 0;
-            document.querySelectorAll('.val-servico').forEach(input => {
-                const val = parseFloat(input.value) || 0;
-                total += val;
-            });
-            document.getElementById('valor-total').innerText = total.toFixed(2);
-        }
+    function apagarItemHistorico(event, index) {
+      event.stopPropagation();
+      if (confirm("Tens a certeza que pretendes apagar este registo do histórico?")) {
+        historico.splice(index, 1);
+        localStorage.setItem('gestor_historico', JSON.stringify(historico));
+        atualizarHistoricoUI();
+      }
+    }
 
-        function salvarHistorico() {
-            alert("Orçamento guardado com sucesso!");
-        }
+    function apagarTodoHistorico() {
+      if (confirm("⚠️ ATENÇÃO: Tens a certeza que pretendes apagar TODO o histórico? Esta ação não pode ser desfeita!")) {
+        historico = [];
+        dadosFiltradosCache = null;
+        localStorage.setItem('gestor_historico', JSON.stringify(historico));
+        atualizarHistoricoUI();
+      }
+    }
 
-        function gerarPDF() {
-            window.print();
-        }
-    </script>
+    function fazerBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historico));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", "backup_gestor.json");
+      anchor.click();
+    }
+
+    function restaurarBackup() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = function(readerEvent) {
+          try {
+            historico = JSON.parse(readerEvent.target.result);
+            localStorage.setItem('gestor_historico', JSON.stringify(historico));
+            dadosFiltradosCache = null;
+            atualizarHistoricoUI();
+            alert("Backup restaurado com sucesso!");
+          } catch(err) {
+            alert("Arquivo inválido!");
+          }
+        };
+      };
+      input.click();
+    }
+
+    function mostrarTela(tela) {
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('app-section').classList.add('hidden');
+      document.getElementById('expired-section').classList.add('hidden');
+
+      if (tela === 'auth') document.getElementById('auth-section').classList.remove('hidden');
+      if (tela === 'app') document.getElementById('app-section').classList.remove('hidden');
+      if (tela === 'expired') document.getElementById('expired-section').classList.remove('hidden');
+    }
+  </script>
 </body>
 </html>
