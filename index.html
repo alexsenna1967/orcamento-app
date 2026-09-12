@@ -84,11 +84,11 @@
         </div>
         <div>
           <label class="block text-[10px] font-semibold text-gray-600">Nome Fantasia</label>
-          <input type="text" id="empresaNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
+          <input type="text" id="empresaNome" oninput="salvarDadosEmpresaNuvem()" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
         </div>
         <div>
           <label class="block text-[10px] font-semibold text-gray-600">CNPJ / CPF / Tel</label>
-          <input type="text" id="empresaDoc" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
+          <input type="text" id="empresaDoc" oninput="salvarDadosEmpresaNuvem()" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
         </div>
       </div>
     </div>
@@ -239,22 +239,16 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // O teu e-mail de administrador para ver a contagem de utilizadores
     const EMAIL_ADMIN = "brazsenna67@gmail.com";
 
-    let historico = JSON.parse(localStorage.getItem('gestor_historico') || '[]');
-    let logoBase64 = localStorage.getItem('gestor_logo') || '';
+    let historico = [];
+    let logoBase64 = '';
     let dadosFiltradosCache = null;
 
     document.getElementById('orcamentoData').valueAsDate = new Date();
 
-    if (logoBase64) {
-      document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
-    }
-
     auth.onAuthStateChanged(function(user) {
       if (user) {
-        // Verificar se é o administrador para mostrar o painel de contagem
         if (user.email === EMAIL_ADMIN) {
           document.getElementById('admin-panel').classList.remove('hidden');
           carregarContagemUtilizadores();
@@ -268,7 +262,6 @@
       }
     });
 
-    // Função para contar quantos utilizadores se registaram no Firebase
     function carregarContagemUtilizadores() {
       db.collection('users').get().then(function(querySnapshot) {
         document.getElementById('total-users-count').innerText = querySnapshot.size + " utilizador(es)";
@@ -277,7 +270,6 @@
       });
     }
 
-    // Função auxiliar para controlar qual secção/ecrã mostrar
     function mostrarTela(tipo) {
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('app-section').classList.add('hidden');
@@ -302,7 +294,11 @@
             email: user.email,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             trialStartDate: new Date().toISOString(),
-            approved: true
+            approved: true,
+            historico: [],
+            logo: '',
+            empresaNome: '',
+            empresaDoc: ''
           });
         })
         .catch(function(err) {
@@ -327,6 +323,19 @@
       db.collection('users').doc(user.uid).get().then(function(doc) {
         if (doc.exists) {
           const data = doc.data();
+          
+          // Carregar dados específicos deste utilizador do Firestore
+          historico = data.historico || [];
+          logoBase64 = data.logo || '';
+          document.getElementById('empresaNome').value = data.empresaNome || '';
+          document.getElementById('empresaDoc').value = data.empresaDoc || '';
+
+          if (logoBase64) {
+            document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
+          } else {
+            document.getElementById('previewLogo').innerHTML = '';
+          }
+
           const startDate = new Date(data.trialStartDate);
           const currentDate = new Date();
           const diffTime = Math.abs(currentDate - startDate);
@@ -349,14 +358,37 @@
       });
     }
 
+    function salvarDadosEmpresaNuvem() {
+      const user = auth.currentUser;
+      if (!user) return;
+      const empresaNome = document.getElementById('empresaNome').value;
+      const empresaDoc = document.getElementById('empresaDoc').value;
+
+      db.collection('users').doc(user.uid).update({
+        empresaNome: empresaNome,
+        empresaDoc: empresaDoc
+      }).catch(function(err) {
+        console.error("Erro ao atualizar dados da empresa:", err);
+      });
+    }
+
     function carregarLogo(event) {
       const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
           logoBase64 = e.target.result;
-          localStorage.setItem('gestor_logo', logoBase64);
           document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
+          
+          // Salvar logo na nuvem do utilizador atual
+          const user = auth.currentUser;
+          if (user) {
+            db.collection('users').doc(user.uid).update({
+              logo: logoBase64
+            }).catch(function(err) {
+              console.error("Erro ao salvar logo:", err);
+            });
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -533,9 +565,21 @@
         servicos: servicosSalvos
       });
 
-      localStorage.setItem('gestor_historico', JSON.stringify(historico));
-      atualizarHistoricoUI();
+      sincronizarHistoricoNuvem();
       alert("Orçamento salvo no histórico com sucesso!");
+    }
+
+    function sincronizarHistoricoNuvem() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      db.collection('users').doc(user.uid).update({
+        historico: historico
+      }).then(function() {
+        atualizarHistoricoUI();
+      }).catch(function(err) {
+        console.error("Erro ao salvar histórico na nuvem:", err);
+      });
     }
 
     function carregarDoHistorico(index) {
@@ -665,23 +709,23 @@
       event.stopPropagation();
       if (confirm("Tem certeza que deseja apagar este registo?")) {
         historico.splice(index, 1);
-        localStorage.setItem('gestor_historico', JSON.stringify(historico));
-        atualizarHistoricoUI();
+        sincronizarHistoricoNuvem();
       }
     }
 
     function apagarTodoHistorico() {
       if (confirm("Tem certeza que deseja limpar todo o histórico?")) {
         historico = [];
-        localStorage.removeItem('gestor_historico');
-        atualizarHistoricoUI();
+        sincronizarHistoricoNuvem();
       }
     }
 
     function fazerBackup() {
       const dados = {
         historico: historico,
-        logo: logoBase64
+        logo: logoBase64,
+        empresaNome: document.getElementById('empresaNome').value,
+        empresaDoc: document.getElementById('empresaDoc').value
       };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados));
       const downloadAnchor = document.createElement('a');
@@ -704,15 +748,20 @@
             const dados = JSON.parse(event.target.result);
             if (dados.historico) {
               historico = dados.historico;
-              localStorage.setItem('gestor_historico', JSON.stringify(historico));
             }
             if (dados.logo) {
               logoBase64 = dados.logo;
-              localStorage.setItem('gestor_logo', logoBase64);
               document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
             }
-            atualizarHistoricoUI();
-            alert("Backup restaurado com sucesso!");
+            if (dados.empresaNome) {
+              document.getElementById('empresaNome').value = dados.empresaNome;
+            }
+            if (dados.empresaDoc) {
+              document.getElementById('empresaDoc').value = dados.empresaDoc;
+            }
+            sincronizarHistoricoNuvem();
+            salvarDadosEmpresaNuvem();
+            alert("Backup restaurado e sincronizado com sucesso!");
           } catch(err) {
             alert("Erro ao ler o arquivo de backup.");
           }
