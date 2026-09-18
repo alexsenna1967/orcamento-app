@@ -204,7 +204,7 @@
 
   </div>
 
-  <!-- 3. TELA DE ACESSO EXPIRADO -->
+ <!-- 3. TELA DE ACESSO EXPIRADO -->
   <div id="expired-section" class="hidden max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md text-center">
     <h2 class="text-2xl font-bold text-red-600 mb-2">Período de Teste Expirado</h2>
     <p class="text-gray-600 text-sm mb-4">Os seus 30 dias de teste grátis terminaram. Para continuar a utilizar o gestor sem interrupções, efetue o pagamento da assinatura:</p>
@@ -212,7 +212,7 @@
     <!-- Bloco de Pagamento Pix -->
     <div class="bg-gray-50 p-4 rounded-lg border mb-4 text-left shadow-sm">
       <p class="text-xs font-bold text-gray-700 mb-1">💳 Pagamento via Pix:</p>
-      <p class="text-[11px] text-gray-500 mb-2">Chave Pix (CNPJ / E-mail / Telefone):</p>
+      <p class="text-[11px] text-gray-500 mb-2">Chave Pix (E-mail):</p>
       <div class="flex items-center gap-2">
         <input type="text" id="chavePixAdmin" readonly value="brazsenna67@gmail.com" class="w-full p-2 border rounded text-xs bg-white font-mono text-center">
         <button onclick="copiarChavePix()" class="bg-blue-600 text-white px-3 py-2 rounded text-xs font-bold hover:bg-blue-700 transition">Copiar</button>
@@ -314,7 +314,7 @@
             mostrarTela('app');
             atualizarHistoricoUI();
           } else {
-            const mensagem = encodeURIComponent("Olá! Meu período de teste expirou (E-mail: " + user.email + "). Gostaria de renovar.");
+            const mensagem = encodeURIComponent("Olá! Meu período de teste expirou (E-mail: " + user.email + "). Gostaria de renovar a assinatura e segue o comprovante.");
             document.getElementById('whatsapp-link').href = "https://wa.me/5531983367677?text=" + mensagem;
             mostrarTela('expired');
           }
