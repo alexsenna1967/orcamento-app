@@ -74,11 +74,11 @@
         </div>
         <div>
           <label class="block text-[10px] font-semibold text-gray-600">Nome Fantasia</label>
-          <input type="text" id="empresaNome" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
+          <input type="text" id="empresaNome" oninput="salvarDadosEmpresa()" class="w-full p-1.5 border rounded-md text-xs" placeholder="Ex: Senna Serviços">
         </div>
         <div>
           <label class="block text-[10px] font-semibold text-gray-600">CNPJ / CPF / Tel</label>
-          <input type="text" id="empresaDoc" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
+          <input type="text" id="empresaDoc" oninput="salvarDadosEmpresa()" class="w-full p-1.5 border rounded-md text-xs" placeholder="Documento / Contato">
         </div>
       </div>
     </div>
@@ -253,8 +253,22 @@
 
     document.getElementById('orcamentoData').valueAsDate = new Date();
 
+    // Carregar dados salvos da empresa ao iniciar
+    const nomeSalvo = localStorage.getItem('gestor_empresa_nome') || '';
+    const docSalvo = localStorage.getItem('gestor_empresa_doc') || '';
+    document.getElementById('empresaNome').value = nomeSalvo;
+    document.getElementById('empresaDoc').value = docSalvo;
+
     if (logoBase64) {
       document.getElementById('previewLogo').innerHTML = '<img src="' + logoBase64 + '" class="h-10 object-contain mt-1">';
+    }
+
+    // Função para salvar nome e documento automaticamente conforme o utilizador digita
+    function salvarDadosEmpresa() {
+      const nome = document.getElementById('empresaNome').value;
+      const doc = document.getElementById('empresaDoc').value;
+      localStorage.setItem('gestor_empresa_nome', nome);
+      localStorage.setItem('gestor_empresa_doc', doc);
     }
 
     auth.onAuthStateChanged(function(user) {
@@ -558,7 +572,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // FUNÇÃO ATUALIZADA: Orçamento não confirmado conta apenas na quantidade, sem ir para "A Receber"
     function atualizarHistoricoUI() {
       const div = document.getElementById('listaHistorico');
       let listaParaExibir = (dadosFiltradosCache !== null) ? dadosFiltradosCache : historico;
@@ -591,14 +604,13 @@
           }
 
           if (estaNoFiltro) {
-            // Lógica de cálculo ajustada
             if (item.status.indexOf('Quitado') !== -1 || item.status.indexOf('Mensalista') !== -1) {
               rec += valorNum;
             } else if (item.status.indexOf('Parcial') !== -1) {
-              rec += adiantadoNum; // Soma o adiantado no recebido
-              aRec += (valorNum - adiantadoNum); // Soma o restante no a receber
+              rec += adiantadoNum;
+              aRec += (valorNum - adiantadoNum);
             } else if (item.status.indexOf('Orçamento') !== -1) {
-              qtdOrcamentos++; // Conta apenas na quantidade de orçamentos (NÃO soma em A Receber)
+              qtdOrcamentos++;
             } else {
               aRec += valorNum;
             }
