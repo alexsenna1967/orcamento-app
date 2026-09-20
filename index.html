@@ -204,7 +204,7 @@
 
   </div>
 
-<!-- 3. TELA DE ACESSO EXPIRADO -->
+  <!-- 3. TELA DE ACESSO EXPIRADO -->
   <div id="expired-section" class="hidden max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-md text-center">
     <h2 class="text-2xl font-bold text-red-600 mb-2">Período de Teste Expirado</h2>
     <p class="text-gray-600 text-sm mb-4">Os seus 30 dias de teste grátis terminaram. Para continuar a utilizar o gestor sem interrupções, efetue o pagamento da assinatura:</p>
@@ -230,6 +230,7 @@
     <br>
     <button onclick="fazerLogout()" class="mt-2 text-sm text-gray-500 underline">Voltar ao Login</button>
   </div>
+
   <!-- SCRIPT COMPLETO E INTEGRADO -->
   <script>
     const firebaseConfig = {
@@ -298,7 +299,7 @@
     function copiarChavePix() {
       const inputPix = document.getElementById('chavePixAdmin');
       inputPix.select();
-      inputPix.setSelectionRange(0, 99999); // Compatibilidade com telemóveis
+      inputPix.setSelectionRange(0, 99999);
       navigator.clipboard.writeText(inputPix.value);
       alert("Chave Pix copiada com sucesso! Cole no aplicativo do seu banco para pagar.");
     }
@@ -532,7 +533,6 @@
         document.getElementById('orcamentoData').value = item.dataInput;
       }
 
-      // CORREÇÃO: Tratamento para itens antigos que não tinham a lista 'servicos' gravada
       if (item.servicos && item.servicos.length > 0) {
         let htmlTabela = '';
         item.servicos.forEach(function(s) {
@@ -545,7 +545,6 @@
         });
         document.getElementById('tabelaServicos').innerHTML = htmlTabela;
       } else {
-        // Se for um registo muito antigo sem serviços salvos, criamos uma linha em branco padrão
         document.getElementById('tabelaServicos').innerHTML = 
           '<tr class="border-b item-linha">' +
             '<td class="p-1"><input type="text" value="Serviço anterior (valor total: ' + item.total + ')" class="desc-item w-full p-1 border rounded text-xs"></td>' +
@@ -559,6 +558,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // FUNÇÃO ATUALIZADA COM O NOVO CÁLCULO FINANCEIRO
     function atualizarHistoricoUI() {
       const div = document.getElementById('listaHistorico');
       let listaParaExibir = (dadosFiltradosCache !== null) ? dadosFiltradosCache : historico;
@@ -581,6 +581,7 @@
         
         historico.forEach(function(item, index) {
           const valorNum = parseFloat(item.total.replace('R$', '').replace('.', '').replace(',', '.')) || 0;
+          const adiantadoNum = parseFloat(item.vlrAdiantado) || 0;
           let estaNoFiltro = true;
           
           if (dadosFiltradosCache !== null) {
@@ -590,12 +591,15 @@
           }
 
           if (estaNoFiltro) {
+            // Lógica de cálculo ajustada
             if (item.status.indexOf('Quitado') !== -1 || item.status.indexOf('Mensalista') !== -1) {
               rec += valorNum;
             } else if (item.status.indexOf('Parcial') !== -1) {
-              aRec += valorNum; 
+              rec += adiantadoNum; // Soma o adiantado no recebido
+              aRec += (valorNum - adiantadoNum); // Soma o restante no a receber
             } else if (item.status.indexOf('Orçamento') !== -1) {
-              qtdOrcamentos++;
+              qtdOrcamentos++; // Conta apenas a quantidade de orçamentos pendentes
+              aRec += valorNum; // O valor total do orçamento pendente entra como a receber
             } else {
               aRec += valorNum;
             }
