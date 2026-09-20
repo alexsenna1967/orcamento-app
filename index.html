@@ -558,7 +558,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // FUNÇÃO ATUALIZADA COM O NOVO CÁLCULO FINANCEIRO
+    // FUNÇÃO ATUALIZADA: Orçamento não confirmado conta apenas na quantidade, sem ir para "A Receber"
     function atualizarHistoricoUI() {
       const div = document.getElementById('listaHistorico');
       let listaParaExibir = (dadosFiltradosCache !== null) ? dadosFiltradosCache : historico;
@@ -598,8 +598,7 @@
               rec += adiantadoNum; // Soma o adiantado no recebido
               aRec += (valorNum - adiantadoNum); // Soma o restante no a receber
             } else if (item.status.indexOf('Orçamento') !== -1) {
-              qtdOrcamentos++; // Conta apenas a quantidade de orçamentos pendentes
-              aRec += valorNum; // O valor total do orçamento pendente entra como a receber
+              qtdOrcamentos++; // Conta apenas na quantidade de orçamentos (NÃO soma em A Receber)
             } else {
               aRec += valorNum;
             }
